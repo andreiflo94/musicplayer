@@ -110,6 +110,7 @@ class MusicPlaybackService : Service() {
 
     override fun onDestroy() {
         Log.d("MusicPlaybackService", "onDestroy" + audioFilePath)
+        updateMusicPlaybackStatus(mediaPlayer.isPlaying)
         super.onDestroy()
         mediaPlayer.release()
     }

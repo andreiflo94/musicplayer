@@ -9,23 +9,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.example.musicplayer.ui.screens.MusicFoldersScreen
-import com.example.musicplayer.ui.screens.MusicOverlay
-import com.example.musicplayer.ui.screens.PermissionRequiredScreen
-import com.example.musicplayer.ui.screens.SplashScreen
+import com.example.musicplayer.ui.screens.AppNavHost
+import com.example.musicplayer.ui.screens.AppScreenState
 import com.example.musicplayer.ui.theme.MusicplayerTheme
-import com.example.musicplayer.viewmodels.MusicFoldersViewModel
+import com.example.musicplayer.viewmodels.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -33,7 +27,7 @@ class MainActivity : ComponentActivity(), MusicBroadcastReceiver.MusicBroadcastL
 
     private lateinit var musicReceiver: MusicBroadcastReceiver
     private lateinit var navController: NavController
-
+    private val viewModel: MainActivityViewModel by viewModels()
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -86,60 +80,15 @@ class MainActivity : ComponentActivity(), MusicBroadcastReceiver.MusicBroadcastL
     @Composable
     fun MusicPlayerApp() {
         navController = rememberNavController()
-        NavHost(
+        AppNavHost(
             navController = navController as NavHostController,
-            startDestination = Screen.SplashScreen.route
-        ) {
-            composable(Screen.SplashScreen.route) {
-                SplashScreen()
-                // Check if the permission is already granted
-                if (isPermissionGranted()) {
-                    // Permission already granted
-                    // You can now proceed with your logic
-                    navController.navigate(Screen.MusicFoldersScreen.route) {
-                        popUpTo(Screen.SplashScreen.route) { inclusive = true }
-                    }
-                    // Do something with the musicFolders
-                } else {
-                    // Permission not yet granted, request it
-                    requestStoragePermission()
-                }
-            }
-            composable(
-                route = Screen.MusicFoldersScreen.route + "?path={path}",
-                arguments = listOf(navArgument(name = "path") {
-                    type = NavType.StringType
-                    defaultValue = ""
-                })
-            ) { backStackEntry ->
-                val navArgs = backStackEntry.arguments
-                var path = ""
-                navArgs?.getString("path")?.let {
-                    path = it
-                }
-                val musicViewModel = hiltViewModel<MusicFoldersViewModel>()
-                if (path.isBlank()) {
-                    musicViewModel.loadMusicFolders(applicationContext)
-                } else {
-                    musicViewModel.loadMusicFilesFromPath(applicationContext, path)
-                }
-                MusicFoldersScreen(
-                    musicFolders = musicViewModel.musicFoldersState.collectAsState(
-                        initial = emptyList()
-                    )
-                ) { newPath ->
-                    if (newPath.endsWith(".mp3") || newPath.endsWith(".m4a")) {
-                        startMusicService(this@MainActivity, newPath)
-                        return@MusicFoldersScreen
-                    } else {
-                        navController.navigate(Screen.MusicFoldersScreen.route + "?path=$newPath")
-                    }
-                }
-            }
-            composable(Screen.PermissionRequiredScreen.route) {
-                PermissionRequiredScreen()
-            }
-        }
+            isPermissionGranted = isPermissionGranted(),
+            requestStoragePermission = { requestStoragePermission() },
+            openAudioFile = {
+                startMusicService(this@MainActivity, it)
+            },
+            viewModel.appState.collectAsState()
+        )
     }
 
     private fun startMusicService(context: Context, audioFilePath: String) {
@@ -150,11 +99,6 @@ class MainActivity : ComponentActivity(), MusicBroadcastReceiver.MusicBroadcastL
     }
 
     override fun onMusicPlaying(isPlaying: Boolean) {
-//        setContent {
-//            MusicplayerTheme {
-//                MusicPlayerApp()
-//                MusicOverlay(isPlaying = isPlaying)
-//            }
-//        }
+        viewModel.changeAudioFileState(isPlaying)
     }
 }
