@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -100,5 +101,10 @@ class MainActivity : ComponentActivity(), MusicBroadcastReceiver.MusicBroadcastL
 
     override fun onMusicPlaying(isPlaying: Boolean) {
         viewModel.changeAudioFileState(isPlaying)
+    }
+
+    override fun onMusicPlayingProgress(progress: Int, totalDuration: Int) {
+        Log.d("Progress", " " + progress + " " + totalDuration)
+        viewModel.changeAudioFileProgress(progress)
     }
 }

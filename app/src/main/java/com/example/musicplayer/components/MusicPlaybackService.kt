@@ -7,7 +7,9 @@ import android.app.Service
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Build
+import android.os.CountDownTimer
 import android.os.IBinder
+import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
@@ -15,6 +17,7 @@ import androidx.core.app.NotificationCompat
 import androidx.media.session.MediaButtonReceiver
 import com.example.musicplayer.R
 import java.io.IOException
+import kotlin.concurrent.timer
 
 class MusicPlaybackService : Service() {
 
@@ -30,20 +33,20 @@ class MusicPlaybackService : Service() {
     private lateinit var mediaPlayer: MediaPlayer
     private var audioFilePath: String = ""
     private lateinit var mediaSession: MediaSessionCompat
-
-    inner class MediaSessionCallback : MediaSessionCompat.Callback() {
-        override fun onPlay() {
-            resumeMediaPlayer()
-        }
-
-        override fun onPause() {
-            pauseMediaPlayer()
-        }
-    }
+    private var countDownTimer: CountDownTimer? = null
 
     override fun onCreate() {
         super.onCreate()
         Log.d("MusicPlaybackService", "onCreate")
+
+        initMediaPlayer()
+        initMediaSession()
+
+        createNotificationChannel()
+        updateNotification()
+    }
+
+    private fun initMediaPlayer(){
         mediaPlayer = MediaPlayer()
 
         // Set up media player settings
@@ -51,24 +54,21 @@ class MusicPlaybackService : Service() {
             Log.d("MusicPlaybackService", "setOnPreparedListener")
             mediaPlayer.start()
             updateNotification()
+            setupTimerForPlaybackProgress()
+            startTimerForPlaybackProgress()
         }
 
         mediaPlayer.setOnCompletionListener {
             Log.d("MusicPlaybackService", "setOnCompletionListener")
+            stopTimerForPlaybackProgress()
             stopSelf()
         }
+    }
 
+    private fun initMediaSession(){
         // Initialize MediaSessionCompat
         mediaSession = MediaSessionCompat(this, "MusicPlayerSession")
-        mediaSession.setCallback(MediaSessionCallback())
         mediaSession.isActive = true
-
-        val stateBuilder = PlaybackStateCompat.Builder()
-            .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE)
-        mediaSession.setPlaybackState(stateBuilder.build())
-
-        createNotificationChannel()
-        updateNotification()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -98,12 +98,6 @@ class MusicPlaybackService : Service() {
         return START_NOT_STICKY
     }
 
-    private fun resumeMediaPlayer() {
-        Log.d("MusicPlaybackService", "resume" + audioFilePath)
-        mediaPlayer.start()
-        updateNotification()
-    }
-
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
@@ -120,6 +114,7 @@ class MusicPlaybackService : Service() {
             Log.d("MusicPlaybackService", "startMediaPlayer" + audioFilePath)
             mediaPlayer.setDataSource(audioFilePath)
             mediaPlayer.prepareAsync()
+
         } catch (e: IOException) {
             Log.d("MusicPlaybackService", "IOException" + e.message)
             stopSelf()
@@ -131,7 +126,21 @@ class MusicPlaybackService : Service() {
             Log.d("MusicPlaybackService", "pauseMediaPlayer" + audioFilePath)
             mediaPlayer.pause()
             updateNotification()
+            stopTimerForPlaybackProgress()
         }
+    }
+
+    private fun resumeMediaPlayer() {
+        Log.d("MusicPlaybackService", "resume" + audioFilePath)
+        startTimerForPlaybackProgress()
+        mediaPlayer.start()
+        updateNotification()
+    }
+
+    private fun stopMediaPlayer() {
+        stopTimerForPlaybackProgress()
+        mediaPlayer.stop()
+        mediaPlayer.reset()
     }
 
     private fun updateNotification() {
@@ -217,8 +226,40 @@ class MusicPlaybackService : Service() {
         sendBroadcast(intent)
     }
 
-    private fun stopMediaPlayer() {
-        mediaPlayer.stop()
-        mediaPlayer.reset()
+    private fun updateMusicPlaybackProgress(progress: Int, totalDuration: Int) {
+        Log.d("MusicPlaybackService", "updateMusicPlaybackProgress " + progress)
+        val intent = Intent(MusicBroadcastReceiver.UPDATE_PLAYBACK_STATUS)
+        intent.putExtra(MusicBroadcastReceiver.PLAYBACK_PROGRESS, progress)
+        intent.putExtra(MusicBroadcastReceiver.PLAYBACK_TOTAL_DURATION, totalDuration)
+        sendBroadcast(intent)
+    }
+
+    private fun setupTimerForPlaybackProgress(){
+        val totalTimeInMillis: Int = mediaPlayer.duration // Total time in milliseconds (e.g., 1 minute)
+        val intervalInMillis: Long = 1000 // Interval in milliseconds (e.g., 1 second)
+
+        countDownTimer = object : CountDownTimer(totalTimeInMillis.toLong(), intervalInMillis) {
+            override fun onTick(millisUntilFinished: Long) {
+                val currentPosition = mediaPlayer.currentPosition
+
+                // Calculate progress percentage
+                val progress = (currentPosition.toFloat() / totalTimeInMillis.toFloat()) * 100
+
+                updateMusicPlaybackProgress(progress.toInt(), totalTimeInMillis)
+            }
+
+            override fun onFinish() {
+                // This method will be called when the timer finishes
+                // Perform actions when the timer finishes
+            }
+        }
+    }
+
+    private fun startTimerForPlaybackProgress(){
+        countDownTimer?.start()
+    }
+
+    private fun stopTimerForPlaybackProgress(){
+        countDownTimer?.cancel()
     }
 }
