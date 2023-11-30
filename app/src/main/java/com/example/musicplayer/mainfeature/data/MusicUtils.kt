@@ -1,4 +1,4 @@
-package com.example.musicplayer.utils
+package com.example.musicplayer.mainfeature.data
 import android.content.ContentResolver
 import android.content.Context
 import android.provider.MediaStore
@@ -9,11 +9,11 @@ object MusicUtils {
 
     private const val TAG = "MusicUtils"
 
-    fun getMusicFolders(context: Context): List<File> {
+    fun getMusicFolders(contentResolver: ContentResolver): List<File> {
         val musicFolders = mutableListOf<File>()
 
         // Content resolver to query the device's media store
-        val contentResolver: ContentResolver = context.contentResolver
+        val contentResolver: ContentResolver = contentResolver
 
         // Projection for the query
         val projection = arrayOf(
@@ -55,7 +55,7 @@ object MusicUtils {
         return musicFolders
     }
 
-    fun getMusicFilesFromPath(context: Context, folderPath: String): List<File> {
+    fun getMusicFilesFromPath(contentResolver: ContentResolver, folderPath: String): List<File> {
         val musicFiles = mutableListOf<File>()
 
         // Check if the folder path is valid
@@ -65,7 +65,7 @@ object MusicUtils {
         }
 
         // Content resolver to query the device's media store
-        val contentResolver: ContentResolver = context.contentResolver
+        val contentResolver: ContentResolver = contentResolver
 
         // Projection for the query
         val projection = arrayOf(

@@ -1,4 +1,4 @@
-package com.example.musicplayer.components
+package com.example.musicplayer.mainfeature.presentation.ui
 
 import android.Manifest
 import android.content.Context
@@ -17,10 +17,12 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.musicplayer.ui.screens.AppNavHost
-import com.example.musicplayer.ui.screens.AppScreenState
-import com.example.musicplayer.ui.theme.MusicplayerTheme
-import com.example.musicplayer.viewmodels.MainActivityViewModel
+import com.example.musicplayer.MusicBroadcastReceiver
+import com.example.musicplayer.MusicPlaybackService
+import com.example.musicplayer.mainfeature.presentation.ui.screens.AppNavHost
+import com.example.musicplayer.mainfeature.presentation.ui.screens.AudioFileState
+import com.example.musicplayer.mainfeature.presentation.ui.theme.MusicplayerTheme
+import com.example.musicplayer.mainfeature.presentation.viewmodels.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -99,8 +101,8 @@ class MainActivity : ComponentActivity(), MusicBroadcastReceiver.MusicBroadcastL
         ContextCompat.startForegroundService(context, serviceIntent)
     }
 
-    override fun onMusicPlaying(isPlaying: Boolean) {
-        viewModel.changeAudioFileState(isPlaying)
+    override fun onMusicPlaying(audioFileState: AudioFileState) {
+        viewModel.changeAudioFileState(audioFileState)
     }
 
     override fun onMusicPlayingProgress(progress: Int, totalDuration: Int) {

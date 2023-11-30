@@ -1,4 +1,4 @@
-package com.example.musicplayer.components
+package com.example.musicplayer
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,15 +9,13 @@ import android.media.MediaPlayer
 import android.os.Build
 import android.os.CountDownTimer
 import android.os.IBinder
-import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.media.session.MediaButtonReceiver
-import com.example.musicplayer.R
+import com.example.musicplayer.mainfeature.presentation.ui.screens.AudioFileState
 import java.io.IOException
-import kotlin.concurrent.timer
 
 class MusicPlaybackService : Service() {
 
@@ -34,6 +32,7 @@ class MusicPlaybackService : Service() {
     private var audioFilePath: String = ""
     private lateinit var mediaSession: MediaSessionCompat
     private var countDownTimer: CountDownTimer? = null
+    private var audioFileState: AudioFileState = AudioFileState.IDLE
 
     override fun onCreate() {
         super.onCreate()
@@ -44,6 +43,48 @@ class MusicPlaybackService : Service() {
 
         createNotificationChannel()
         updateNotification()
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("MusicPlaybackService", "onStartCommand")
+        // Handle the action to stop the service triggered by deleteIntent
+        if (intent?.action == STOP_SERVICE_ACTION) {
+            audioFileState = AudioFileState.STOPED
+            stopMediaPlayer()
+            stopSelf()
+        } else if (intent?.action == PLAY_PAUSE_ACTION) {
+            if (audioFilePath.isNotBlank()) {
+                // Handle play/pause action
+                if (mediaPlayer.isPlaying) {
+                    audioFileState = AudioFileState.PAUSED
+                    pauseMediaPlayer()
+                } else {
+                    audioFileState = AudioFileState.PLAYING
+                    if (mediaPlayer.currentPosition > 0) {
+                        resumeMediaPlayer()
+                    } else {
+                        startMediaPlayer()
+                    }
+                }
+            }
+        } else if (intent?.action == PLAY_NEW_TRACK_ACTION && intent.hasExtra(EXTRA_AUDIO_FILE_PATH)) {
+            audioFilePath = intent.getStringExtra(EXTRA_AUDIO_FILE_PATH) ?: ""
+            stopMediaPlayer()
+            startMediaPlayer()
+            audioFileState = AudioFileState.PLAYING
+        }
+        return START_NOT_STICKY
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        return null
+    }
+
+    override fun onDestroy() {
+        Log.d("MusicPlaybackService", "onDestroy" + audioFilePath)
+        updateMusicPlaybackStatus(mediaPlayer.isPlaying)
+        super.onDestroy()
+        mediaPlayer.release()
     }
 
     private fun initMediaPlayer(){
@@ -69,44 +110,6 @@ class MusicPlaybackService : Service() {
         // Initialize MediaSessionCompat
         mediaSession = MediaSessionCompat(this, "MusicPlayerSession")
         mediaSession.isActive = true
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("MusicPlaybackService", "onStartCommand")
-        // Handle the action to stop the service triggered by deleteIntent
-        if (intent?.action == STOP_SERVICE_ACTION) {
-            stopMediaPlayer()
-            stopSelf()
-        } else if (intent?.action == PLAY_PAUSE_ACTION) {
-            if (audioFilePath.isNotBlank()) {
-                // Handle play/pause action
-                if (mediaPlayer.isPlaying) {
-                    pauseMediaPlayer()
-                } else {
-                    if (mediaPlayer.currentPosition > 0) {
-                        resumeMediaPlayer()
-                    } else {
-                        startMediaPlayer()
-                    }
-                }
-            }
-        } else if (intent?.action == PLAY_NEW_TRACK_ACTION && intent.hasExtra(EXTRA_AUDIO_FILE_PATH)) {
-            audioFilePath = intent.getStringExtra(EXTRA_AUDIO_FILE_PATH) ?: ""
-            stopMediaPlayer()
-            startMediaPlayer()
-        }
-        return START_NOT_STICKY
-    }
-
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
-
-    override fun onDestroy() {
-        Log.d("MusicPlaybackService", "onDestroy" + audioFilePath)
-        updateMusicPlaybackStatus(mediaPlayer.isPlaying)
-        super.onDestroy()
-        mediaPlayer.release()
     }
 
     private fun startMediaPlayer() {
@@ -218,11 +221,10 @@ class MusicPlaybackService : Service() {
         }
     }
 
-    // Inside MusicPlaybackService, when the playback status changes
     private fun updateMusicPlaybackStatus(isPlaying: Boolean) {
         Log.d("MusicPlaybackService", "updateMusicPlaybackStatus " + isPlaying)
         val intent = Intent(MusicBroadcastReceiver.UPDATE_PLAYBACK_STATUS)
-        intent.putExtra(MusicBroadcastReceiver.IS_PLAYING, isPlaying)
+        intent.putExtra(MusicBroadcastReceiver.AUDIO_STATE, audioFileState.name)
         sendBroadcast(intent)
     }
 

@@ -1,4 +1,4 @@
-package com.example.musicplayer.ui.screens
+package com.example.musicplayer.mainfeature.presentation.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

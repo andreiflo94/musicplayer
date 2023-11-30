@@ -1,4 +1,4 @@
-package com.example.musicplayer.ui.screens
+package com.example.musicplayer.mainfeature.presentation.ui.screens
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -10,16 +10,15 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.musicplayer.components.MainActivity
-import com.example.musicplayer.ui.components.AppPlayerBar
-import com.example.musicplayer.viewmodels.MusicFoldersViewModel
+import com.example.musicplayer.mainfeature.presentation.ui.MainActivity
+import com.example.musicplayer.mainfeature.presentation.ui.components.AppPlayerBar
+import com.example.musicplayer.mainfeature.presentation.viewmodels.MusicFoldersViewModel
 
 enum class AudioFileState {
     PLAYING, PAUSED, STOPED, IDLE
@@ -81,9 +80,9 @@ fun AppNavHost(
                 }
                 val musicViewModel = hiltViewModel<MusicFoldersViewModel>()
                 if (path.isBlank()) {
-                    musicViewModel.loadMusicFolders(LocalContext.current)
+                    musicViewModel.loadMusicFolders()
                 } else {
-                    musicViewModel.loadMusicFilesFromPath(LocalContext.current, path)
+                    musicViewModel.loadMusicFilesFromPath(path)
                 }
                 MusicFoldersScreen(
                     musicFolders = musicViewModel.musicFoldersState.collectAsState(

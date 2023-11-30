@@ -1,4 +1,4 @@
-package com.example.musicplayer.ui.components
+package com.example.musicplayer.mainfeature.presentation.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,8 +21,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.musicplayer.R
-import com.example.musicplayer.ui.screens.AppScreenState
-import com.example.musicplayer.ui.screens.AudioFileState
+import com.example.musicplayer.mainfeature.presentation.ui.screens.AppScreenState
+import com.example.musicplayer.mainfeature.presentation.ui.screens.AudioFileState
 
 @Composable
 fun AppPlayerBar(appScreenState: AppScreenState) {

@@ -1,4 +1,4 @@
-package com.example.musicplayer.ui.screens
+package com.example.musicplayer.mainfeature.presentation.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
@@ -21,7 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.example.musicplayer.viewmodels.MusicFolder
+import com.example.musicplayer.mainfeature.domain.MusicFolder
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable

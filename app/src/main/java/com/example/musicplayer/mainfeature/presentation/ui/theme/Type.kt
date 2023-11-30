@@ -1,4 +1,4 @@
-package com.example.musicplayer.ui.theme
+package com.example.musicplayer.mainfeature.presentation.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
