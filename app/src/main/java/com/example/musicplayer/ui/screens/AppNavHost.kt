@@ -21,7 +21,11 @@ import com.example.musicplayer.components.MainActivity
 import com.example.musicplayer.ui.components.AppPlayerBar
 import com.example.musicplayer.viewmodels.MusicFoldersViewModel
 
-data class AppScreenState(var audioFilePlaying: Boolean, var audioFileProgress: Float)
+enum class AudioFileState {
+    PLAYING, PAUSED, STOPED, IDLE
+}
+
+data class AppScreenState(var audioFileState: AudioFileState, var audioFileProgress: Float)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,14 +36,14 @@ fun AppNavHost(
     openAudioFile: (path: String) -> Unit,
     state: State<AppScreenState>
 ) {
-    val showSnackBar = state.value.audioFilePlaying
+    val audioFileState = state.value.audioFileState
     val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
         floatingActionButton = {
-            if (showSnackBar)
+            if (audioFileState != AudioFileState.IDLE)
                 AppPlayerBar(state.value)
         }
     ) { contentPadding ->

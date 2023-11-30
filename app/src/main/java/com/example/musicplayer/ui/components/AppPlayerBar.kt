@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.musicplayer.R
 import com.example.musicplayer.ui.screens.AppScreenState
+import com.example.musicplayer.ui.screens.AudioFileState
 
 @Composable
 fun AppPlayerBar(appScreenState: AppScreenState) {
@@ -43,12 +44,14 @@ fun AppPlayerBar(appScreenState: AppScreenState) {
                 modifier = Modifier
                     .padding(8.dp),
                 content = {
-                    if(appScreenState.audioFilePlaying){
+                    if (appScreenState.audioFileState == AudioFileState.PLAYING) {
                         Icon(
                             painterResource(id = R.drawable.ic_not_pause),
                             contentDescription = "Pause"
                         )
-                    }else{
+                    } else if (appScreenState.audioFileState == AudioFileState.PAUSED
+                        || appScreenState.audioFileState == AudioFileState.STOPED
+                    ) {
                         Icon(
                             painterResource(id = R.drawable.ic_not_play),
                             contentDescription = "Start"
@@ -85,5 +88,5 @@ fun ProgressBar(audioFileProgress: Float) {
 @Preview
 @Composable
 fun AppPlayerBarPreview() {
-    AppPlayerBar(AppScreenState(audioFilePlaying = true, 0.3f))
+    AppPlayerBar(AppScreenState(audioFileState = AudioFileState.PLAYING, 0.3f))
 }
