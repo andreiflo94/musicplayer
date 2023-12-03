@@ -90,6 +90,8 @@ class MainActivity : ComponentActivity(), MusicBroadcastReceiver.MusicBroadcastL
             openAudioFile = {
                 startMusicService(this@MainActivity, it)
             },
+            playPauseClick = { playPauseMusicService(this@MainActivity) },
+            stopPlayingClick = { closeMusicService(this@MainActivity) },
             viewModel.appState.collectAsState()
         )
     }
@@ -98,6 +100,18 @@ class MainActivity : ComponentActivity(), MusicBroadcastReceiver.MusicBroadcastL
         val serviceIntent = Intent(context, MusicPlaybackService::class.java)
         serviceIntent.action = MusicPlaybackService.PLAY_NEW_TRACK_ACTION
         serviceIntent.putExtra(MusicPlaybackService.EXTRA_AUDIO_FILE_PATH, audioFilePath)
+        ContextCompat.startForegroundService(context, serviceIntent)
+    }
+
+    private fun playPauseMusicService(context: Context) {
+        val serviceIntent = Intent(context, MusicPlaybackService::class.java)
+        serviceIntent.action = MusicPlaybackService.PLAY_PAUSE_ACTION
+        ContextCompat.startForegroundService(context, serviceIntent)
+    }
+
+    private fun closeMusicService(context: Context) {
+        val serviceIntent = Intent(context, MusicPlaybackService::class.java)
+        serviceIntent.action = MusicPlaybackService.STOP_SERVICE_ACTION
         ContextCompat.startForegroundService(context, serviceIntent)
     }
 

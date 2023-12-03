@@ -25,7 +25,11 @@ import com.example.musicplayer.mainfeature.presentation.ui.screens.AppScreenStat
 import com.example.musicplayer.mainfeature.presentation.ui.screens.AudioFileState
 
 @Composable
-fun AppPlayerBar(appScreenState: AppScreenState) {
+fun AppPlayerBar(
+    appScreenState: AppScreenState,
+    playPauseClick: () -> Unit,
+    stopPlayingClick: () -> Unit
+) {
     val audioFileProgress = appScreenState.audioFileProgress
     Surface(
         modifier = Modifier
@@ -40,7 +44,7 @@ fun AppPlayerBar(appScreenState: AppScreenState) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = { /* Start button click action */ },
+                onClick = { playPauseClick() },
                 modifier = Modifier
                     .padding(8.dp),
                 content = {
@@ -60,7 +64,7 @@ fun AppPlayerBar(appScreenState: AppScreenState) {
                 }
             )
             IconButton(
-                onClick = { /* Start button click action */ },
+                onClick = { stopPlayingClick() },
                 modifier = Modifier
                     .padding(8.dp),
                 content = {
@@ -88,5 +92,5 @@ fun ProgressBar(audioFileProgress: Float) {
 @Preview
 @Composable
 fun AppPlayerBarPreview() {
-    AppPlayerBar(AppScreenState(audioFileState = AudioFileState.PLAYING, 0.3f))
+    AppPlayerBar(AppScreenState(audioFileState = AudioFileState.PLAYING, 0.3f), {}, {})
 }

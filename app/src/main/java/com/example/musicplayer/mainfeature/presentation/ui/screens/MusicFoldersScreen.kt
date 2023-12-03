@@ -1,6 +1,7 @@
 package com.example.musicplayer.mainfeature.presentation.ui.screens
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import com.example.musicplayer.mainfeature.domain.MusicFolder
 @Composable
 fun MusicFoldersScreen(musicFolders: State<List<MusicFolder>>,
                        onClick: (String) -> Unit) {
+    Log.d("MusicFoldersScreen", "MusicFoldersScreen")
     MusicList(musicFolders.value, onClick)
 }
 

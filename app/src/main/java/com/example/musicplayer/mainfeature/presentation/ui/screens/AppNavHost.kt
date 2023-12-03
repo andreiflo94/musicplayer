@@ -33,17 +33,23 @@ fun AppNavHost(
     isPermissionGranted: Boolean,
     requestStoragePermission: () -> Unit,
     openAudioFile: (path: String) -> Unit,
+    playPauseClick: () -> Unit,
+    stopPlayingClick: () -> Unit,
     state: State<AppScreenState>
 ) {
     val audioFileState = state.value.audioFileState
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            SnackbarHost(hostState = snackBarHostState)
         },
         floatingActionButton = {
-            if (audioFileState != AudioFileState.IDLE)
-                AppPlayerBar(state.value)
+            if (audioFileState != AudioFileState.IDLE && audioFileState != AudioFileState.STOPED)
+                AppPlayerBar(
+                    state.value,
+                    playPauseClick = playPauseClick,
+                    stopPlayingClick = stopPlayingClick
+                )
         }
     ) { contentPadding ->
         NavHost(
