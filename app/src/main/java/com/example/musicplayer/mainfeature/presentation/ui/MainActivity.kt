@@ -19,8 +19,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.musicplayer.MusicBroadcastReceiver
 import com.example.musicplayer.MusicPlaybackService
-import com.example.musicplayer.mainfeature.presentation.ui.screens.AppNavHost
 import com.example.musicplayer.mainfeature.presentation.ui.screens.AudioFileState
+import com.example.musicplayer.mainfeature.presentation.ui.screens.RequiredPermission
 import com.example.musicplayer.mainfeature.presentation.ui.theme.MusicplayerTheme
 import com.example.musicplayer.mainfeature.presentation.viewmodels.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,16 +31,6 @@ class MainActivity : ComponentActivity(), MusicBroadcastReceiver.MusicBroadcastL
     private lateinit var musicReceiver: MusicBroadcastReceiver
     private lateinit var navController: NavController
     private val viewModel: MainActivityViewModel by viewModels()
-
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                navController.navigate(Screen.MusicFoldersScreen.route)
-            } else {
-                navController.navigate(Screen.PermissionRequiredScreen.route)
-            }
-        }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,38 +52,16 @@ class MainActivity : ComponentActivity(), MusicBroadcastReceiver.MusicBroadcastL
         unregisterReceiver(musicReceiver)
     }
 
-    private fun isPermissionGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun requestStoragePermission() {
-        // Request the permission
-        requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-    }
-
-    sealed class Screen(val route: String) {
-        object SplashScreen : Screen("splash_screen")
-        object PermissionRequiredScreen : Screen("permission_required_screen")
-        object MusicFoldersScreen : Screen("music_folders_screen")
-    }
-
     @Composable
     fun MusicPlayerApp() {
         navController = rememberNavController()
-        AppNavHost(
-            navController = navController as NavHostController,
-            isPermissionGranted = isPermissionGranted(),
-            requestStoragePermission = { requestStoragePermission() },
+        RequiredPermission(navController = navController as NavHostController,
             openAudioFile = {
                 startMusicService(this@MainActivity, it)
             },
             playPauseClick = { playPauseMusicService(this@MainActivity) },
             stopPlayingClick = { closeMusicService(this@MainActivity) },
-            viewModel.appState.collectAsState()
-        )
+            viewModel.appState.collectAsState())
     }
 
     private fun startMusicService(context: Context, audioFilePath: String) {

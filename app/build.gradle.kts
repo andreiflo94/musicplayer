@@ -87,4 +87,6 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
 
     implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
+
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 }

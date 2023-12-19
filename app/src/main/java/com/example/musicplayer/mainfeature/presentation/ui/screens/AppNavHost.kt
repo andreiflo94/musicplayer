@@ -16,12 +16,15 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.musicplayer.mainfeature.presentation.ui.MainActivity
 import com.example.musicplayer.mainfeature.presentation.ui.components.AppPlayerBar
 import com.example.musicplayer.mainfeature.presentation.viewmodels.MusicFoldersViewModel
 
 enum class AudioFileState {
     PLAYING, PAUSED, STOPED, IDLE
+}
+
+sealed class Screen(val route: String) {
+    object MusicFoldersScreen : Screen("music_folders_screen")
 }
 
 data class AppScreenState(var audioFileState: AudioFileState, var audioFileProgress: Float)
@@ -30,8 +33,6 @@ data class AppScreenState(var audioFileState: AudioFileState, var audioFileProgr
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    isPermissionGranted: Boolean,
-    requestStoragePermission: () -> Unit,
     openAudioFile: (path: String) -> Unit,
     playPauseClick: () -> Unit,
     stopPlayingClick: () -> Unit,
@@ -54,26 +55,11 @@ fun AppNavHost(
     ) { contentPadding ->
         NavHost(
             navController = navController,
-            startDestination = MainActivity.Screen.SplashScreen.route,
+            startDestination = Screen.MusicFoldersScreen.route,
             modifier = Modifier.padding(contentPadding)
         ) {
-            composable(MainActivity.Screen.SplashScreen.route) {
-                SplashScreen()
-                // Check if the permission is already granted
-                if (isPermissionGranted) {
-                    // Permission already granted
-                    // You can now proceed with your logic
-                    navController.navigate(MainActivity.Screen.MusicFoldersScreen.route) {
-                        popUpTo(MainActivity.Screen.SplashScreen.route) { inclusive = true }
-                    }
-                    // Do something with the musicFolders
-                } else {
-                    // Permission not yet granted, request it
-                    requestStoragePermission()
-                }
-            }
             composable(
-                route = MainActivity.Screen.MusicFoldersScreen.route + "?path={path}",
+                route = Screen.MusicFoldersScreen.route + "?path={path}",
                 arguments = listOf(navArgument(name = "path") {
                     type = NavType.StringType
                     defaultValue = ""
@@ -99,12 +85,9 @@ fun AppNavHost(
                         openAudioFile(newPath)
                         return@MusicFoldersScreen
                     } else {
-                        navController.navigate(MainActivity.Screen.MusicFoldersScreen.route + "?path=$newPath")
+                        navController.navigate(Screen.MusicFoldersScreen.route + "?path=$newPath")
                     }
                 }
-            }
-            composable(MainActivity.Screen.PermissionRequiredScreen.route) {
-                PermissionRequiredScreen()
             }
         }
     }
