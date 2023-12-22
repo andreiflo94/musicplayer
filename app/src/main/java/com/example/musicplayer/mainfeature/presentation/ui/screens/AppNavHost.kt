@@ -38,13 +38,13 @@ fun AppNavHost(
     stopPlayingClick: () -> Unit,
     state: State<AppScreenState>
 ) {
-    val audioFileState = state.value.audioFileState
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackBarHostState)
         },
         floatingActionButton = {
+            val audioFileState = state.value.audioFileState
             if (audioFileState != AudioFileState.IDLE && audioFileState != AudioFileState.STOPED)
                 AppPlayerBar(
                     state.value,
