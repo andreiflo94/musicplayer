@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,15 +27,15 @@ import com.example.musicplayer.mainfeature.domain.MusicFolder
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MusicFoldersScreen(musicFolders: State<List<MusicFolder>>,
-                       onClick: (String) -> Unit) {
-    Log.d("MusicFoldersScreen", "MusicFoldersScreen")
+fun MusicFoldersScreen(
+    musicFolders: State<List<MusicFolder>>, onClick: (String) -> Unit
+) {
     MusicList(musicFolders.value, onClick)
 }
 
 @Composable
 fun MusicList(musicFolders: List<MusicFolder>, onClick: (String) -> Unit) {
-    LazyColumn {
+    LazyColumn(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
         items(musicFolders) { folder ->
             MusicFolderItem(folder, onClick)
         }
@@ -48,8 +49,10 @@ fun MusicFolderItem(folder: MusicFolder, onClick: (String) -> Unit) {
         modifier = Modifier
             .padding(16.dp)
             .fillMaxWidth()
-            .clickable { onClick(folder.path)},
+            .clickable { onClick(folder.path) },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
         shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(2.dp),
     ) {
         Column(
             modifier = Modifier
@@ -61,9 +64,9 @@ fun MusicFolderItem(folder: MusicFolder, onClick: (String) -> Unit) {
                 model = folder.albumIconUrl,
                 contentDescription = "album image",
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(40.dp)
                     .clip(MaterialTheme.shapes.medium)
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(MaterialTheme.colorScheme.primary),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -73,7 +76,7 @@ fun MusicFolderItem(folder: MusicFolder, onClick: (String) -> Unit) {
                 text = folder.name,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -99,9 +102,7 @@ fun MusicFolderItemPreview() {
 
 private fun getSampleMusicFolders(): List<MusicFolder> {
     return listOf(
-        MusicFolder("Folder 1", "", "url1"),
-        MusicFolder("Folder 2", "", "url2"),
-        MusicFolder("Folder 3", "", "url3")
+        MusicFolder("Folder 1", "", "url1"), MusicFolder("Folder 2", "", "url2"), MusicFolder("Folder 3", "", "url3")
     )
 }
 

@@ -233,7 +233,12 @@ class MusicPlaybackService : Service() {
         val intent = Intent(MusicBroadcastReceiver.UPDATE_PLAYBACK_STATUS)
         intent.putExtra(MusicBroadcastReceiver.PLAYBACK_PROGRESS, progress)
         intent.putExtra(MusicBroadcastReceiver.PLAYBACK_TOTAL_DURATION, totalDuration)
+        intent.putExtra(MusicBroadcastReceiver.PLAYBACK_TITLE, extractFileName(audioFilePath))
         sendBroadcast(intent)
+    }
+
+    private fun extractFileName(filePath: String): String{
+        return filePath.split("/").last()
     }
 
     private fun setupTimerForPlaybackProgress(){

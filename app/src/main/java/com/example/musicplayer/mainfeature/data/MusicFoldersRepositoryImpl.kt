@@ -1,11 +1,11 @@
 package com.example.musicplayer.mainfeature.data
 
 import android.content.ContentResolver
-import com.example.musicplayer.mainfeature.domain.IMusicFoldersRepository
+import com.example.musicplayer.mainfeature.domain.MusicFoldersRepository
 import com.example.musicplayer.mainfeature.domain.MusicFolder
 import javax.inject.Inject
 
-class MusicFoldersRepository @Inject constructor(private val contentResolver: ContentResolver): IMusicFoldersRepository {
+class MusicFoldersRepositoryImpl @Inject constructor(private val contentResolver: ContentResolver): MusicFoldersRepository {
     override fun getMusicFolders(): List<MusicFolder> {
         val musicFolders = MusicUtils.getMusicFolders(contentResolver)
         val processedList = ArrayList<MusicFolder>()

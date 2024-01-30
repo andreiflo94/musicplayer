@@ -2,6 +2,7 @@ package com.example.musicplayer.mainfeature.presentation.ui.screens
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -27,7 +28,9 @@ sealed class Screen(val route: String) {
     object MusicFoldersScreen : Screen("music_folders_screen")
 }
 
-data class AppScreenState(var audioFileState: AudioFileState, var audioFileProgress: Float)
+data class AppScreenState(var audioFileTitle: String,
+                          var audioFileState: AudioFileState,
+                          var audioFileProgress: Float)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,9 +46,8 @@ fun AppNavHost(
         snackbarHost = {
             SnackbarHost(hostState = snackBarHostState)
         },
+        floatingActionButtonPosition = FabPosition.Center,
         floatingActionButton = {
-            val audioFileState = state.value.audioFileState
-            if (audioFileState != AudioFileState.IDLE && audioFileState != AudioFileState.STOPED)
                 AppPlayerBar(
                     state.value,
                     playPauseClick = playPauseClick,

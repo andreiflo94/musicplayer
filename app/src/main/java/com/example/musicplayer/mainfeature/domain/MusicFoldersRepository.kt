@@ -1,6 +1,6 @@
 package com.example.musicplayer.mainfeature.domain
 
-interface IMusicFoldersRepository {
+interface MusicFoldersRepository {
 
     fun getMusicFolders(): List<MusicFolder>
 

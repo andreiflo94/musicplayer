@@ -18,7 +18,7 @@ import com.example.musicplayer.MusicBroadcastReceiver
 import com.example.musicplayer.MusicPlaybackService
 import com.example.musicplayer.mainfeature.presentation.ui.screens.AudioFileState
 import com.example.musicplayer.mainfeature.presentation.ui.screens.RequiredPermission
-import com.example.musicplayer.mainfeature.presentation.ui.theme.MusicplayerTheme
+import com.example.musicplayer.ui.theme.MusicplayerTheme
 import com.example.musicplayer.mainfeature.presentation.viewmodels.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity(), MusicBroadcastReceiver.MusicBroadcastL
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MusicplayerTheme {
+            MusicplayerTheme(dynamicColor = false) {
                 MusicPlayerApp()
             }
         }
@@ -84,8 +84,8 @@ class MainActivity : ComponentActivity(), MusicBroadcastReceiver.MusicBroadcastL
         viewModel.changeAudioFileState(audioFileState)
     }
 
-    override fun onMusicPlayingProgress(progress: Int, totalDuration: Int) {
-        Log.d("Progress", " " + progress + " " + totalDuration)
-        viewModel.changeAudioFileProgress(progress)
+    override fun onMusicPlayingProgress(progress: Int, totalDuration: Int, musicFileTitle: String) {
+        Log.d("Progress", " " + progress + " " + totalDuration + " musicFileTitle: " + title)
+        viewModel.changeAudioFileProgress(progress, musicFileTitle)
     }
 }

@@ -1,6 +1,5 @@
 package com.example.musicplayer.mainfeature.data
 import android.content.ContentResolver
-import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
 import java.io.File
@@ -11,9 +10,6 @@ object MusicUtils {
 
     fun getMusicFolders(contentResolver: ContentResolver): List<File> {
         val musicFolders = mutableListOf<File>()
-
-        // Content resolver to query the device's media store
-        val contentResolver: ContentResolver = contentResolver
 
         // Projection for the query
         val projection = arrayOf(
@@ -63,9 +59,6 @@ object MusicUtils {
         if (!folder.exists() || !folder.isDirectory) {
             return musicFiles
         }
-
-        // Content resolver to query the device's media store
-        val contentResolver: ContentResolver = contentResolver
 
         // Projection for the query
         val projection = arrayOf(
