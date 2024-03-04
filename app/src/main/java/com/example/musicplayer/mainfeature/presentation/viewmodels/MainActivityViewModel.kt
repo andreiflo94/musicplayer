@@ -1,6 +1,5 @@
 package com.example.musicplayer.mainfeature.presentation.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
@@ -136,7 +135,6 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
     private fun getMediaControllerListener() = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
-            Log.d("KKKKK", "onIsPlayingChanged: " + isPlaying)
             if (isPlaying) {
                 startOrResumeAudioPlayback()
                 startProgressUpdate()
@@ -148,7 +146,6 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
-            Log.d("KKKKK", "onMediaItemTransition ")
             getMediaController()?.let {
                 setCurrentTrackPlayingIndex(it.currentMediaItemIndex)
             }
@@ -156,7 +153,6 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
-            Log.d("KKKKK", "onPlaybackStateChanged " + playbackState)
             when (playbackState) {
 
                 Player.STATE_IDLE -> {
