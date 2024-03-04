@@ -1,9 +1,7 @@
 package com.example.musicplayer.mainfeature.presentation.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,8 +13,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,18 +24,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.musicplayer.R
-import com.example.musicplayer.mainfeature.presentation.ui.screens.AppScreenState
-import com.example.musicplayer.mainfeature.presentation.ui.screens.AudioFileState
+import com.example.musicplayer.mainfeature.presentation.viewmodels.AudioState
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppPlayerBar(
-    appScreenState: AppScreenState,
+    audioState: AudioState,
     playPauseClick: () -> Unit,
-    stopPlayingClick: () -> Unit
+    stopPlayingClick: () -> Unit,
+    onProgressUpdate: (progress: Long) -> Unit
 ) {
-    val audioFileState = appScreenState.audioFileState
-    if (audioFileState != AudioFileState.IDLE && audioFileState != AudioFileState.STOPED) {
+    if (!audioState.stopped) {
         Card(
             modifier = Modifier
                 .padding(16.dp)
@@ -53,18 +49,7 @@ fun AppPlayerBar(
                     .fillMaxWidth()
                     .wrapContentHeight()
             ) {
-                // Display the album name
-                Text(
-                    modifier = Modifier
-                        .padding(8.dp, 0.dp, 0.dp, 0.dp)
-                        .wrapContentWidth()
-                        .wrapContentHeight()
-                        .basicMarquee(),
-                    text = appScreenState.audioFileTitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                TrackName(audioState.trackName)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -75,14 +60,12 @@ fun AppPlayerBar(
                     IconButton(
                         onClick = { playPauseClick() },
                         content = {
-                            if (appScreenState.audioFileState == AudioFileState.PLAYING) {
+                            if (audioState.isPlaying) {
                                 Icon(
                                     painterResource(id = R.drawable.ic_not_pause),
                                     contentDescription = "Pause"
                                 )
-                            } else if (appScreenState.audioFileState == AudioFileState.PAUSED
-                                || appScreenState.audioFileState == AudioFileState.STOPED
-                            ) {
+                            } else {
                                 Icon(
                                     painterResource(id = R.drawable.ic_not_play),
                                     contentDescription = "Start"
@@ -99,27 +82,47 @@ fun AppPlayerBar(
                             )
                         }
                     )
-                    ProgressBar(appScreenState)
                 }
+                ProgressBar(audioState, onProgressUpdate)
             }
         }
     }
 }
 
 @Composable
-fun ProgressBar(appScreenState: AppScreenState) {
-    val audioFileProgress = appScreenState.audioFileProgress
-    LinearProgressIndicator(
-        progress = audioFileProgress
+@OptIn(ExperimentalFoundationApi::class)
+private fun TrackName(trackName: String) {
+    Text(
+        modifier = Modifier
+            .padding(10.dp, 10.dp, 10.dp, 10.dp)
+            .wrapContentWidth()
+            .wrapContentHeight()
+            .basicMarquee(),
+        text = trackName,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary
+    )
+}
+
+@Composable
+fun ProgressBar(
+    audioState: AudioState,
+    onProgressUpdate: (progress: Long) -> Unit
+) {
+    Slider(
+        value = audioState.progress,
+        onValueChange = {
+            onProgressUpdate(it.toLong())
+        },
+        valueRange = 0f..100f
     )
 }
 
 @Preview
 @Composable
 fun AppPlayerBarPreview() {
-    AppPlayerBar(AppScreenState(
-        audioFileTitle = "testing",
-        audioFileState = AudioFileState.PLAYING,
-        audioFileProgress = 0.3f
-    ), {}, {})
+    AppPlayerBar(AudioState(
+        trackName = "example.mp3", isPlaying = true, progress = 30.0f, stopped = false
+    ), {}, {}, {})
 }

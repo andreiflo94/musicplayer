@@ -1,4 +1,4 @@
-package com.example.musicplayer.mainfeature.presentation.ui.screens
+package com.example.musicplayer.mainfeature.presentation.ui.components
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,29 +17,24 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.musicplayer.mainfeature.presentation.ui.components.AppPlayerBar
+import com.example.musicplayer.mainfeature.presentation.ui.screens.MusicFoldersScreen
+import com.example.musicplayer.mainfeature.presentation.viewmodels.AudioState
 import com.example.musicplayer.mainfeature.presentation.viewmodels.MusicFoldersViewModel
-
-enum class AudioFileState {
-    PLAYING, PAUSED, STOPED, IDLE
-}
 
 sealed class Screen(val route: String) {
     object MusicFoldersScreen : Screen("music_folders_screen")
 }
 
-data class AppScreenState(var audioFileTitle: String,
-                          var audioFileState: AudioFileState,
-                          var audioFileProgress: Float)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    openAudioFile: (path: String) -> Unit,
+    startAudioPlayback: (list: List<String>, index: Int) -> Unit,
     playPauseClick: () -> Unit,
     stopPlayingClick: () -> Unit,
-    state: State<AppScreenState>
+    onProgressUpdate: (progress: Long) -> Unit,
+    state: State<AudioState>
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -48,11 +43,12 @@ fun AppNavHost(
         },
         floatingActionButtonPosition = FabPosition.Center,
         floatingActionButton = {
-                AppPlayerBar(
-                    state.value,
-                    playPauseClick = playPauseClick,
-                    stopPlayingClick = stopPlayingClick
-                )
+            AppPlayerBar(
+                state.value,
+                playPauseClick = playPauseClick,
+                stopPlayingClick = stopPlayingClick,
+                onProgressUpdate = onProgressUpdate
+            )
         }
     ) { contentPadding ->
         NavHost(
@@ -82,12 +78,14 @@ fun AppNavHost(
                     musicFolders = musicViewModel.musicFoldersState.collectAsState(
                         initial = emptyList()
                     )
-                ) { newPath ->
-                    if (newPath.endsWith(".mp3") || newPath.endsWith(".m4a")) {
-                        openAudioFile(newPath)
+                ) { musicFolder ->
+                    if (musicFolder.isAudioFile()) {
+                        startAudioPlayback(musicViewModel.musicFoldersState.value.map {
+                            it.path
+                        }, musicViewModel.musicFoldersState.value.indexOf(musicFolder))
                         return@MusicFoldersScreen
                     } else {
-                        navController.navigate(Screen.MusicFoldersScreen.route + "?path=$newPath")
+                        navController.navigate(Screen.MusicFoldersScreen.route + "?path=${musicFolder.path}")
                     }
                 }
             }

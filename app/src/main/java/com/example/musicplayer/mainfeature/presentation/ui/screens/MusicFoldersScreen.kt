@@ -1,10 +1,10 @@
 package com.example.musicplayer.mainfeature.presentation.ui.screens
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,7 +16,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,14 +27,20 @@ import com.example.musicplayer.mainfeature.domain.MusicFolder
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MusicFoldersScreen(
-    musicFolders: State<List<MusicFolder>>, onClick: (String) -> Unit
+    musicFolders: State<List<MusicFolder>>, onClick: (MusicFolder) -> Unit
 ) {
     MusicList(musicFolders.value, onClick)
 }
 
 @Composable
-fun MusicList(musicFolders: List<MusicFolder>, onClick: (String) -> Unit) {
-    LazyColumn(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+fun MusicList(musicFolders: List<MusicFolder>, onClick: (MusicFolder) -> Unit) {
+    LazyColumn(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.background),
+        contentPadding = PaddingValues(
+            bottom = 170.dp,
+        ),
+    ) {
         items(musicFolders) { folder ->
             MusicFolderItem(folder, onClick)
         }
@@ -44,12 +49,12 @@ fun MusicList(musicFolders: List<MusicFolder>, onClick: (String) -> Unit) {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun MusicFolderItem(folder: MusicFolder, onClick: (String) -> Unit) {
+fun MusicFolderItem(folder: MusicFolder, onClick: (MusicFolder) -> Unit) {
     Card(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxWidth()
-            .clickable { onClick(folder.path) },
+            .clickable { onClick(folder) },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
         shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.cardElevation(2.dp),

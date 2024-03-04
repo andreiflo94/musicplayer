@@ -1,4 +1,4 @@
-package com.example.musicplayer.mainfeature.presentation.ui.screens
+package com.example.musicplayer.mainfeature.presentation.ui.components
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.musicplayer.mainfeature.presentation.viewmodels.AudioState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -38,18 +39,19 @@ import com.google.accompanist.permissions.rememberPermissionState
 @Composable
 fun RequiredPermission(
     navController: NavHostController,
-    openAudioFile: (path: String) -> Unit,
+    startAudioPlayback: (list: List<String>, index: Int) -> Unit,
     playPauseClick: () -> Unit,
     stopPlayingClick: () -> Unit,
-    appState: State<AppScreenState>
+    onProgressUpdate: (progress: Long) -> Unit,
+    audioState: State<AudioState>
 ) {
     val state = rememberPermissionState(Manifest.permission.READ_EXTERNAL_STORAGE)
     Scaffold {
         when {
             state.status.isGranted -> AppNavHost(
                 navController = navController,
-                openAudioFile = {
-                    openAudioFile(it)
+                startAudioPlayback = { list, index ->
+                    startAudioPlayback(list, index)
                 },
                 playPauseClick = {
                     playPauseClick()
@@ -57,7 +59,10 @@ fun RequiredPermission(
                 stopPlayingClick = {
                     stopPlayingClick()
                 },
-                appState
+                onProgressUpdate = { progress ->
+                    onProgressUpdate(progress)
+                },
+                audioState
             )
 
             else -> {

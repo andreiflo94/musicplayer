@@ -2,6 +2,9 @@ package com.example.musicplayer.di
 
 import android.content.ContentResolver
 import android.content.Context
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import com.example.musicplayer.utils.MediaControllerManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,5 +20,12 @@ class ApplicationModule {
     @Singleton
     fun provideContentResolver(@ApplicationContext context: Context): ContentResolver {
         return context.contentResolver
+    }
+
+    @OptIn(UnstableApi::class)
+    @Provides
+    @Singleton
+    fun provideMediaControllerManager(@ApplicationContext context: Context): MediaControllerManager {
+        return MediaControllerManager(context)
     }
 }
