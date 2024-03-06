@@ -50,14 +50,7 @@ class PlaybackService : MediaSessionService() {
 
     // Called when the system determines that the service is no longer used and is being removed
     override fun onTaskRemoved(rootIntent: Intent?) {
-        // Get the player from the media session
-        val player = mediaSession.player
-
-        // Check if the player is not ready to play or there are no items in the media queue
-        if (!player.playWhenReady || player.mediaItemCount == 0) {
-            // Stop the service
-            stopSelf()
-        }
+        stopSelf()
     }
 
     // Called when a MediaSession.ControllerInfo requests the MediaSession

@@ -2,12 +2,13 @@ package com.example.musicplayer.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val teal = Color(0xFF009688)
-val amber = Color(0xFFFFC107)
-val grey = Color(0xFF757575)
+val Canvas = Color(0xFFFFFBFE)
+val CanvasGrey = Color.Gray
 
-val overTeal = Color(0xFFEEEEEE)
-val overAmber = Color(0xFF000000)
-val overGrey = Color(0xFFDDDDDD)
+val Green80 = Color(0xFF78909C)
+val GreenGrey80 = Color(0xFF43A047)
+val Amber80 = Color(0xFFFAAAA0)
 
-val lightGrey = Color(0xFFF5F5F5)
+val Green40 = Color(0xFFB0BEC5)
+val GreenGrey40 = Color(0xFF66BB6A)
+val Amber40 = Color(0xFFFFD54F)

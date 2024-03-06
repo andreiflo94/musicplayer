@@ -1,22 +1,22 @@
 package com.example.musicplayer.mainfeature.presentation.ui.components
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.musicplayer.R
 import com.example.musicplayer.mainfeature.presentation.ui.screens.MusicFoldersScreen
 import com.example.musicplayer.mainfeature.presentation.viewmodels.AudioState
 import com.example.musicplayer.mainfeature.presentation.viewmodels.MusicFoldersViewModel
@@ -26,7 +26,7 @@ sealed class Screen(val route: String) {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -36,25 +36,28 @@ fun AppNavHost(
     onProgressUpdate: (progress: Long) -> Unit,
     state: State<AudioState>
 ) {
-    val snackBarHostState = remember { SnackbarHostState() }
-    Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackBarHostState)
-        },
-        floatingActionButtonPosition = FabPosition.Center,
-        floatingActionButton = {
+    val scaffoldState = rememberBottomSheetScaffoldState()
+
+    val animatedHeight by animateDpAsState(
+        targetValue = if (state.value.stopped) 0.dp
+        else dimensionResource(id = R.dimen.app_player_bar_height), label = ""
+    )
+
+    BottomSheetScaffold(
+        sheetContent = {
             AppPlayerBar(
                 state.value,
                 playPauseClick = playPauseClick,
                 stopPlayingClick = stopPlayingClick,
                 onProgressUpdate = onProgressUpdate
             )
-        }
-    ) { contentPadding ->
+        },
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = animatedHeight
+    ) {
         NavHost(
             navController = navController,
             startDestination = Screen.MusicFoldersScreen.route,
-            modifier = Modifier.padding(contentPadding)
         ) {
             composable(
                 route = Screen.MusicFoldersScreen.route + "?path={path}",
@@ -91,4 +94,5 @@ fun AppNavHost(
             }
         }
     }
+
 }

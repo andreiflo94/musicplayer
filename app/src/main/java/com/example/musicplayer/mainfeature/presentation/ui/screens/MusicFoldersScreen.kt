@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -36,7 +37,8 @@ fun MusicFoldersScreen(
 fun MusicList(musicFolders: List<MusicFolder>, onClick: (MusicFolder) -> Unit) {
     LazyColumn(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.background)
+            .fillMaxSize(),
         contentPadding = PaddingValues(
             bottom = 170.dp,
         ),
@@ -50,14 +52,12 @@ fun MusicList(musicFolders: List<MusicFolder>, onClick: (MusicFolder) -> Unit) {
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun MusicFolderItem(folder: MusicFolder, onClick: (MusicFolder) -> Unit) {
-    Card(
+    Surface(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxWidth()
             .clickable { onClick(folder) },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
-        shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(2.dp),
+        shape = MaterialTheme.shapes.medium
     ) {
         Column(
             modifier = Modifier
@@ -71,7 +71,7 @@ fun MusicFolderItem(folder: MusicFolder, onClick: (MusicFolder) -> Unit) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(MaterialTheme.shapes.medium)
-                    .background(MaterialTheme.colorScheme.primary),
+                    .background(MaterialTheme.colorScheme.secondary),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -81,7 +81,7 @@ fun MusicFolderItem(folder: MusicFolder, onClick: (MusicFolder) -> Unit) {
                 text = folder.name,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.secondary
             )
         }
     }

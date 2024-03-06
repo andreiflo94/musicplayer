@@ -1,7 +1,6 @@
 package com.example.musicplayer
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -59,7 +58,6 @@ class MainActivity : ComponentActivity() {
             },
             onProgressUpdate = {
                 val seekTo = ((viewModel.getMediaController()?.duration!! * it) / 100f).toLong()
-                Log.d("seektto", seekTo.toString())
                 viewModel.getMediaController()?.seekTo(seekTo)
             },
             viewModel.audioState.collectAsState()
