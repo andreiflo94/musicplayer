@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.musicplayer.mainfeature.presentation.ui.screens.HomeScreen
 import com.example.musicplayer.mainfeature.presentation.viewmodels.AudioState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -48,22 +49,24 @@ fun RequiredPermission(
     val state = rememberPermissionState(Manifest.permission.READ_EXTERNAL_STORAGE)
     Scaffold {
         when {
-            state.status.isGranted -> AppNavHost(
-                navController = navController,
-                startAudioPlayback = { list, index ->
-                    startAudioPlayback(list, index)
-                },
-                playPauseClick = {
-                    playPauseClick()
-                },
-                stopPlayingClick = {
-                    stopPlayingClick()
-                },
-                onProgressUpdate = { progress ->
-                    onProgressUpdate(progress)
-                },
-                audioState
-            )
+            state.status.isGranted ->
+                HomeScreen(audioState = audioState,
+                    bottomPlayer = {
+                        AppPlayerBar(
+                            audioState.value,
+                            playPauseClick = playPauseClick,
+                            stopPlayingClick = stopPlayingClick,
+                            onProgressUpdate = onProgressUpdate
+                        )
+                    },
+                    content = {
+                        AppNavHost(
+                            navController = navController,
+                            startAudioPlayback = { list, index ->
+                                startAudioPlayback(list, index)
+                            }
+                        )
+                    })
 
             else -> {
                 LaunchedEffect(Unit) {
