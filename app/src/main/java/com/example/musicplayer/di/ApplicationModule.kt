@@ -4,7 +4,8 @@ import android.content.ContentResolver
 import android.content.Context
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
-import com.example.musicplayer.utils.MediaControllerManager
+import com.example.musicplayer.mainfeature.data.MediaControllerManagerImpl
+import com.example.musicplayer.mainfeature.domain.MediaControllerManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,6 +27,6 @@ class ApplicationModule {
     @Provides
     @Singleton
     fun provideMediaControllerManager(@ApplicationContext context: Context): MediaControllerManager {
-        return MediaControllerManager(context)
+        return MediaControllerManagerImpl(context)
     }
 }

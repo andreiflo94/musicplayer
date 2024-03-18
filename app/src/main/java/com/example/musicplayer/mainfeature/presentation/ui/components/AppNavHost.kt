@@ -31,18 +31,8 @@ fun AppNavHost(
                 type = NavType.StringType
                 defaultValue = ""
             })
-        ) { backStackEntry ->
-            val navArgs = backStackEntry.arguments
-            var path = ""
-            navArgs?.getString("path")?.let {
-                path = it
-            }
+        ) { _ ->
             val musicViewModel = hiltViewModel<MusicFoldersViewModel>()
-            if (path.isBlank()) {
-                musicViewModel.loadMusicFolders()
-            } else {
-                musicViewModel.loadMusicFilesFromPath(path)
-            }
             MusicFoldersScreen(
                 musicFolders = musicViewModel.musicFoldersState.collectAsState(
                     initial = emptyList()

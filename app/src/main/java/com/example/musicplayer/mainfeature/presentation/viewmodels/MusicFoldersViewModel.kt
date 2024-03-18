@@ -1,5 +1,6 @@
 package com.example.musicplayer.mainfeature.presentation.viewmodels
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicplayer.mainfeature.data.MusicFoldersRepositoryImpl
@@ -11,20 +12,35 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MusicFoldersViewModel @Inject constructor(private val musicFoldersRepositoryImpl: MusicFoldersRepositoryImpl) :
+class MusicFoldersViewModel @Inject constructor(
+    private val musicFoldersRepositoryImpl: MusicFoldersRepositoryImpl,
+    state: SavedStateHandle
+) :
     ViewModel() {
 
     private val _musicFoldersState: MutableStateFlow<List<MusicFolder>> =
         MutableStateFlow(emptyList())
     val musicFoldersState: StateFlow<List<MusicFolder>> get() = _musicFoldersState
 
-    fun loadMusicFolders() {
+    init {
+        state.get<String>("path")?.let { path ->
+            if (path.isNotBlank()) {
+                loadMusicFilesFromPath(path)
+            } else {
+                loadMusicFolders()
+            }
+        } ?: run {
+            loadMusicFolders()
+        }
+    }
+
+    private fun loadMusicFolders() {
         viewModelScope.launch {
             _musicFoldersState.value = musicFoldersRepositoryImpl.getMusicFolders()
         }
     }
 
-    fun loadMusicFilesFromPath(path: String) {
+    private fun loadMusicFilesFromPath(path: String) {
         viewModelScope.launch {
             _musicFoldersState.value = musicFoldersRepositoryImpl.getMusicFilesFromPath(path)
         }

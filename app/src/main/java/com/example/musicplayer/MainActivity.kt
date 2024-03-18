@@ -7,7 +7,6 @@ import androidx.activity.viewModels
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -17,6 +16,7 @@ import com.example.musicplayer.mainfeature.presentation.viewmodels.MainActivityV
 import com.example.musicplayer.ui.theme.MusicplayerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+@UnstableApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -36,29 +36,19 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun MusicPlayerApp() {
         navController = rememberNavController()
-
         RequiredPermission(
             navController = navController as NavHostController,
             startAudioPlayback = { trackList, index ->
-                viewModel.setCurrentTrackList(trackList, index)
-                val list: List<MediaItem> = trackList.map { track -> MediaItem.fromUri(track) }
-                viewModel.getMediaController()?.setMediaItems(list, index, 0L)
-                viewModel.getMediaController()?.prepare()
-                viewModel.getMediaController()?.play()
+                viewModel.startAudioPlayback(trackList, index)
             },
             playPauseClick = {
-                if (viewModel.getMediaController()?.isPlaying == true) {
-                    viewModel.getMediaController()?.pause()
-                } else {
-                    viewModel.getMediaController()?.play()
-                }
+                viewModel.playPauseClick()
             },
             stopPlayingClick = {
-                viewModel.getMediaController()?.stop()
+                viewModel.stopPlaying()
             },
             onProgressUpdate = {
-                val seekTo = ((viewModel.getMediaController()?.duration!! * it) / 100f).toLong()
-                viewModel.getMediaController()?.seekTo(seekTo)
+                viewModel.onProgressUpdate(it)
             },
             viewModel.audioState.collectAsState()
         )

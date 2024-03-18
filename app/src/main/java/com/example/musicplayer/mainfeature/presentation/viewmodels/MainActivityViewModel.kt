@@ -2,11 +2,10 @@ package com.example.musicplayer.mainfeature.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.session.MediaController
-import com.example.musicplayer.utils.MediaControllerManager
+import com.example.musicplayer.mainfeature.domain.MediaControllerEvent
+import com.example.musicplayer.mainfeature.domain.MediaControllerManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -31,13 +30,44 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
     )
     val audioState: StateFlow<AudioState> = _state
 
-    private lateinit var trackList: List<String>
-    private var index: Int = 0
-
     init {
-        mediaControllerManager.init {
-            getMediaController()?.apply {
-                addListener(getMediaControllerListener())
+        mediaControllerManager.init()
+        viewModelScope.launch {
+            mediaControllerManager.mediaControllerEvents.collect {
+                when (it) {
+                    is MediaControllerEvent.IsPlayingChanged -> {
+                        if (it.isPlaying) {
+                            stateUpdateStartOrResume()
+                            startProgressUpdate()
+                        } else {
+                            stateUpdatePause()
+                            stopProgressUpdate()
+                        }
+                    }
+
+                    is MediaControllerEvent.MediaItemTransition -> {
+                        mediaControllerManager.setCurrentTrackPlayingIndex()
+                    }
+
+                    is MediaControllerEvent.PlaybackStateChanged -> {
+                        when (it.playbackState) {
+                            Player.STATE_IDLE -> {
+                                stateUpdateStopAudio()
+                                stopProgressUpdate()
+                            }
+
+                            Player.STATE_BUFFERING -> {
+                                mediaControllerManager.setCurrentTrackPlayingIndex()
+                            }
+
+                            Player.STATE_ENDED -> {
+                                stateUpdateStopAudio()
+                            }
+                        }
+                    }
+
+                    else -> {}
+                }
             }
         }
     }
@@ -47,77 +77,70 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
         super.onCleared()
     }
 
-    fun setCurrentTrackList(trackList: List<String>, index: Int) {
-        this.trackList = trackList
-        this.index = index
+    fun startAudioPlayback(trackList: List<String>, index: Int) {
+        mediaControllerManager.startAudioPlayback(trackList, index)
     }
 
-    fun getMediaController(): MediaController? {
-        return mediaControllerManager.controller
+    fun playPauseClick() {
+        mediaControllerManager.playPauseClick()
     }
 
-    private fun startOrResumeAudioPlayback() {
-        getMediaController()?.let { mCont ->
-            _state.value = _state.value.copy(
-                trackName = getCurrentTrackName(),
-                progress = calculateProgressValue(
-                    mCont.currentPosition,
-                    duration = mCont.duration
-                ),
-                isPlaying = true,
-                stopped = false
-            )
-        }
+    fun stopPlaying() {
+        mediaControllerManager.stopPlaying()
     }
 
-    private fun pauseAudioPlayback() {
-        getMediaController()?.let { mCont ->
-            _state.value = _state.value.copy(
-                trackName = getCurrentTrackName(),
-                progress = calculateProgressValue(
-                    mCont.currentPosition,
-                    duration = mCont.duration
-                ),
-                isPlaying = false,
-                stopped = false
-            )
-        }
+    fun onProgressUpdate(it: Long) {
+        mediaControllerManager.onProgressUpdate(it)
     }
 
-    private fun updateProgressAudioPlayback() {
-        getMediaController()?.let { mCont ->
-            _state.value = _state.value.copy(
-                trackName = getCurrentTrackName(),
-                progress = calculateProgressValue(
-                    mCont.currentPosition,
-                    duration = mCont.duration
-                ),
-                isPlaying = true,
-                stopped = false
-            )
-        }
+    private fun stateUpdateStartOrResume() {
+        _state.value = _state.value.copy(
+            trackName = mediaControllerManager.getCurrentTrackName(),
+            progress = calculateProgressValue(
+                mediaControllerManager.currentPlayingPosition(),
+                duration = mediaControllerManager.currentTrackDuration()
+            ),
+            isPlaying = true,
+            stopped = false
+        )
     }
 
-    private fun stopAudioPlayback() {
+    private fun stateUpdatePause() {
+        _state.value = _state.value.copy(
+            trackName = mediaControllerManager.getCurrentTrackName(),
+            progress = calculateProgressValue(
+                mediaControllerManager.currentPlayingPosition(),
+                duration = mediaControllerManager.currentTrackDuration()
+            ),
+            isPlaying = false,
+            stopped = false
+        )
+    }
+
+    private fun stateUpdateProgress() {
+        _state.value = _state.value.copy(
+            trackName = mediaControllerManager.getCurrentTrackName(),
+            progress = calculateProgressValue(
+                mediaControllerManager.currentPlayingPosition(),
+                duration = mediaControllerManager.currentTrackDuration()
+            ),
+            isPlaying = true,
+            stopped = false
+        )
+    }
+
+    private fun stateUpdateStopAudio() {
         _state.value = _state.value.copy(
             isPlaying = false,
             stopped = true
         )
     }
 
-    private fun getCurrentTrackName(): String {
-        return this.trackList[index].split("/").last()
-    }
-
-    private fun setCurrentTrackPlayingIndex(index: Int) {
-        this.index = index
-    }
-
     private fun startProgressUpdate() {
         updateTrackProgressJob = viewModelScope.launch {
             while (true) {
                 delay(500)
-                updateProgressAudioPlayback()
+                stateUpdateProgress()
             }
         }
     }
@@ -130,50 +153,6 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
     private fun calculateProgressValue(currentProgress: Long, duration: Long): Float {
         return if (currentProgress > 0) ((currentProgress.toFloat() / duration.toFloat()) * 100f)
         else 0f
-    }
-
-    private fun getMediaControllerListener() = object : Player.Listener {
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            super.onIsPlayingChanged(isPlaying)
-            if (isPlaying) {
-                startOrResumeAudioPlayback()
-                startProgressUpdate()
-            } else {
-                pauseAudioPlayback()
-                stopProgressUpdate()
-            }
-        }
-
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            super.onMediaItemTransition(mediaItem, reason)
-            getMediaController()?.let {
-                setCurrentTrackPlayingIndex(it.currentMediaItemIndex)
-            }
-        }
-
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            super.onPlaybackStateChanged(playbackState)
-            when (playbackState) {
-
-                Player.STATE_IDLE -> {
-                    stopAudioPlayback()
-                    stopProgressUpdate()
-                }
-
-                Player.STATE_BUFFERING -> {
-                    getMediaController()?.let {
-                        setCurrentTrackPlayingIndex(it.currentMediaItemIndex)
-                    }
-                }
-
-                Player.STATE_ENDED -> {
-                    stopAudioPlayback()
-                }
-
-                Player.STATE_READY -> {
-                }
-            }
-        }
     }
 }
 
