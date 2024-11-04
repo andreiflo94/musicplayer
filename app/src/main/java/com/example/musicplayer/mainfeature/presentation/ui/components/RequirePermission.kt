@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -36,7 +36,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RequiredPermission(
     navController: NavHostController,
@@ -46,7 +46,13 @@ fun RequiredPermission(
     onProgressUpdate: (progress: Long) -> Unit,
     audioState: State<AudioState>
 ) {
-    val state = rememberPermissionState(Manifest.permission.READ_EXTERNAL_STORAGE)
+    val permissionToRequest = if (Build.VERSION.SDK_INT >= 33) {
+        Manifest.permission.READ_MEDIA_AUDIO
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+    val state = rememberPermissionState(permissionToRequest)
+
     Scaffold {
         when {
             state.status.isGranted ->
@@ -84,9 +90,9 @@ fun RequiredPermission(
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(Modifier.height(8.dp))
-                        Text("Camera permission required", style = MaterialTheme.typography.bodyMedium)
+                        Text("Read internal storage permission required", style = MaterialTheme.typography.bodyMedium)
                         Spacer(Modifier.height(4.dp))
-                        Text("This is required in order for the app to take pictures")
+                        Text("This is required in order for the app to scan the media files")
                     }
                     val context = LocalContext.current
                     Button(
