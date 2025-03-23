@@ -1,5 +1,6 @@
 Simple music player app that utilizes media3 api.
  
 
-https://github.com/andreiflo94/musicplayer/assets/65669970/b983989b-37ad-40b8-9a15-4ed00dcd64d8
+
+https://github.com/user-attachments/assets/e1a0b4e5-9ec5-4056-bf3b-8e5ab1edfb7b
 
