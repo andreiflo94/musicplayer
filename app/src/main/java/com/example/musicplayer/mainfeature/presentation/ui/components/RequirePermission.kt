@@ -43,6 +43,8 @@ fun RequiredPermission(
     startAudioPlayback: (list: List<String>, index: Int) -> Unit,
     playPauseClick: () -> Unit,
     stopPlayingClick: () -> Unit,
+    playNextTrack: () -> Unit,
+    playPrevious: () -> Unit,
     onProgressUpdate: (progress: Long) -> Unit,
     audioState: State<AudioState>
 ) {
@@ -62,7 +64,9 @@ fun RequiredPermission(
                             audioState.value,
                             playPauseClick = playPauseClick,
                             stopPlayingClick = stopPlayingClick,
-                            onProgressUpdate = onProgressUpdate
+                            onProgressUpdate = onProgressUpdate,
+                            playPrevious = playPrevious,
+                            playNextTrack = playNextTrack,
                         )
                     },
                     content = {
@@ -90,7 +94,10 @@ fun RequiredPermission(
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(Modifier.height(8.dp))
-                        Text("Read internal storage permission required", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            "Read internal storage permission required",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                         Spacer(Modifier.height(4.dp))
                         Text("This is required in order for the app to scan the media files")
                     }

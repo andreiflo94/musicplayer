@@ -16,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 @UnstableApi
-class MainActivityViewModel @Inject constructor(private val mediaControllerManager: MediaControllerManager) : ViewModel() {
+class MainActivityViewModel @Inject constructor(private val mediaControllerManager: MediaControllerManager) :
+    ViewModel() {
 
     private var updateTrackProgressJob: Job? = null
 
@@ -25,7 +26,8 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
             trackName = "",
             progress = 0.0f,
             isPlaying = false,
-            stopped = true
+            stopped = true,
+            hasNextMediaItem = false
         )
     )
     val audioState: StateFlow<AudioState> = _state
@@ -57,6 +59,7 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
                             }
 
                             Player.STATE_BUFFERING -> {
+                                stateUpdateStartOrResume()
                                 mediaControllerManager.setCurrentTrackPlayingIndex()
                             }
 
@@ -93,6 +96,14 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
         mediaControllerManager.onProgressUpdate(it)
     }
 
+    fun playPrevious() {
+        mediaControllerManager.seekToPreviousMediaItem(audioState.value.progress.toLong())
+    }
+
+    fun skipForward() {
+        mediaControllerManager.seekToNextMediaItem()
+    }
+
     private fun stateUpdateStartOrResume() {
         _state.value = _state.value.copy(
             trackName = mediaControllerManager.getCurrentTrackName(),
@@ -100,8 +111,9 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
                 mediaControllerManager.currentPlayingPosition(),
                 duration = mediaControllerManager.currentTrackDuration()
             ),
-            isPlaying = true,
-            stopped = false
+            isPlaying = mediaControllerManager.isCurrentlyPlaying(),
+            stopped = false,
+            hasNextMediaItem = mediaControllerManager.hasNextMediaItem()
         )
     }
 
@@ -113,7 +125,8 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
                 duration = mediaControllerManager.currentTrackDuration()
             ),
             isPlaying = false,
-            stopped = false
+            stopped = false,
+            hasNextMediaItem = mediaControllerManager.hasNextMediaItem()
         )
     }
 
@@ -125,14 +138,16 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
                 duration = mediaControllerManager.currentTrackDuration()
             ),
             isPlaying = true,
-            stopped = false
+            stopped = false,
+            hasNextMediaItem = mediaControllerManager.hasNextMediaItem()
         )
     }
 
     private fun stateUpdateStopAudio() {
         _state.value = _state.value.copy(
             isPlaying = false,
-            stopped = true
+            stopped = true,
+            hasNextMediaItem = mediaControllerManager.hasNextMediaItem()
         )
     }
 
@@ -160,5 +175,6 @@ data class AudioState(
     val trackName: String,
     var progress: Float,
     var isPlaying: Boolean,
-    var stopped: Boolean
+    var stopped: Boolean,
+    var hasNextMediaItem: Boolean,
 )

@@ -1,13 +1,17 @@
 package com.example.musicplayer.mainfeature.data
 
 import android.content.ContentResolver
+import android.net.Uri
+import android.provider.MediaStore
 import com.example.musicplayer.mainfeature.domain.MusicFolder
 import com.example.musicplayer.mainfeature.domain.MusicFoldersRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import javax.inject.Inject
 
-class MusicFoldersRepositoryImpl @Inject constructor(private val contentResolver: ContentResolver) : MusicFoldersRepository {
+class MusicFoldersRepositoryImpl @Inject constructor(private val contentResolver: ContentResolver) :
+    MusicFoldersRepository {
     override suspend fun getMusicFolders() = withContext(Dispatchers.IO) {
         val musicFolders = MusicUtils.getMusicFolders(contentResolver)
         val processedList = ArrayList<MusicFolder>()
@@ -27,8 +31,42 @@ class MusicFoldersRepositoryImpl @Inject constructor(private val contentResolver
     }
 
     private fun getAlbumIconUrl(albumPath: String): String {
-        // You can return a valid URL or file path to the album cover
-        // For simplicity, let's assume the albumPath itself is the URL
-        return albumPath
+        // Check for common album cover image files in the folder
+        val possibleCoverFiles = listOf("cover.jpg", "folder.jpg", "album.jpg", "thumb.jpg")
+        val albumCoverFile = possibleCoverFiles.map { File(albumPath, it) }
+            .firstOrNull { it.exists() }
+
+        if (albumCoverFile != null) {
+            return albumCoverFile.absolutePath
+        }
+
+        // Try to get album art using MediaStore
+        val projection = arrayOf(MediaStore.Audio.Media.ALBUM_ID)
+        val selection = "${MediaStore.Audio.Media.DATA} LIKE ?"
+        val selectionArgs = arrayOf("$albumPath%") // Matches files in the folder
+
+        contentResolver.query(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val albumIdColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
+                if (albumIdColumn != -1) {
+                    val albumId = cursor.getLong(albumIdColumn)
+
+                    // Query album art using the retrieved album ID
+                    val albumArtUri = Uri.parse("content://media/external/audio/albumart/$albumId")
+                    return albumArtUri.toString()
+                }
+            }
+        }
+
+        // Default fallback if no album art found
+        return ""
     }
+
+
 }

@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -35,7 +36,9 @@ fun AppPlayerBar(
     audioState: AudioState,
     playPauseClick: () -> Unit,
     stopPlayingClick: () -> Unit,
-    onProgressUpdate: (progress: Long) -> Unit
+    playNextTrack: () -> Unit,
+    playPrevious: () -> Unit,
+    onProgressUpdate: (progress: Long) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -51,6 +54,17 @@ fun AppPlayerBar(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            IconButton(
+                onClick = { playPrevious() },
+                modifier = Modifier.rotate(180f),
+                content = {
+                    Icon(
+                        painterResource(id = androidx.media3.session.R.drawable.media3_icon_next),
+                        contentDescription = "SkipPrevious",
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            )
             IconButton(
                 onClick = { playPauseClick() },
                 content = {
@@ -69,6 +83,18 @@ fun AppPlayerBar(
                     }
                 }
             )
+            if (audioState.hasNextMediaItem) {
+                IconButton(
+                    onClick = { playNextTrack() },
+                    content = {
+                        Icon(
+                            painterResource(id = androidx.media3.session.R.drawable.media3_icon_next),
+                            contentDescription = "SkipForward",
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                )
+            }
             IconButton(
                 onClick = { stopPlayingClick() },
                 content = {
@@ -124,6 +150,7 @@ fun ProgressBar(
 @Composable
 fun AppPlayerBarPreview() {
     AppPlayerBar(AudioState(
-        trackName = "example.mp3", isPlaying = true, progress = 30.0f, stopped = false
-    ), {}, {}, {})
+        trackName = "example.mp3", isPlaying = true, progress = 30.0f, stopped = false,
+        hasNextMediaItem = true
+    ), {}, {}, {}, {}, {})
 }

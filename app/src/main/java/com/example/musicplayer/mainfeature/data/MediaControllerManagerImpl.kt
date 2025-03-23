@@ -17,9 +17,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
-class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private val context: Context) : MediaControllerManager {
+class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private val context: Context) :
+    MediaControllerManager {
 
-    private val _mediaControllerEvents = MutableStateFlow<MediaControllerEvent>(MediaControllerEvent.Idle)
+    private val _mediaControllerEvents =
+        MutableStateFlow<MediaControllerEvent>(MediaControllerEvent.Idle)
     private lateinit var controllerFuture: ListenableFuture<MediaController>
     private lateinit var trackList: List<String>
     private var currentTrackIndex: Int = 0
@@ -45,6 +47,8 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
             MediaController.releaseFuture(it)
         }
     }
+
+    override fun isCurrentlyPlaying() = controller?.isPlaying == true
 
     override fun currentPlayingPosition() = controller?.currentPosition ?: 0
 
@@ -74,6 +78,24 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
         }
     }
 
+    override fun hasNextMediaItem(): Boolean {
+        return controller?.hasNextMediaItem() == true
+    }
+
+    override fun seekToNextMediaItem() {
+        controller?.seekToNextMediaItem()
+    }
+
+    override fun seekToPreviousMediaItem(progress: Long) {
+        if(progress > 0){
+            controller?.seekTo(0)
+        }else if (controller?.hasPreviousMediaItem() == true) {
+            controller?.seekToPreviousMediaItem()
+        } else {
+            controller?.seekTo(0)
+        }
+    }
+
     override fun stopPlaying() {
         controller?.stop()
     }
@@ -96,7 +118,8 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
-            _mediaControllerEvents.value = MediaControllerEvent.MediaItemTransition(mediaItem, reason)
+            _mediaControllerEvents.value =
+                MediaControllerEvent.MediaItemTransition(mediaItem, reason)
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {

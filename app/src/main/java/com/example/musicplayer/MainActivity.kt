@@ -50,6 +50,13 @@ class MainActivity : ComponentActivity() {
             onProgressUpdate = {
                 viewModel.onProgressUpdate(it)
             },
+            playPrevious = {
+                viewModel.playPrevious()
+            },
+            playNextTrack = {
+                viewModel.skipForward()
+            },
+            audioState =
             viewModel.audioState.collectAsState()
         )
     }

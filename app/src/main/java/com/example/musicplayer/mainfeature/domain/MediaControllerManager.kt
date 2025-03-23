@@ -6,7 +6,9 @@ import kotlinx.coroutines.flow.StateFlow
 sealed class MediaControllerEvent {
     object Idle : MediaControllerEvent()
     data class IsPlayingChanged(val isPlaying: Boolean) : MediaControllerEvent()
-    data class MediaItemTransition(val mediaItem: MediaItem?, val reason: Int) : MediaControllerEvent()
+    data class MediaItemTransition(val mediaItem: MediaItem?, val reason: Int) :
+        MediaControllerEvent()
+
     data class PlaybackStateChanged(val playbackState: Int) : MediaControllerEvent()
 }
 
@@ -19,6 +21,8 @@ interface MediaControllerManager {
 
     fun release()
 
+    fun isCurrentlyPlaying(): Boolean
+
     fun currentPlayingPosition(): Long
 
     fun currentTrackDuration(): Long
@@ -30,6 +34,12 @@ interface MediaControllerManager {
     fun startAudioPlayback(trackList: List<String>, index: Int)
 
     fun playPauseClick()
+
+    fun hasNextMediaItem(): Boolean
+
+    fun seekToNextMediaItem()
+
+    fun seekToPreviousMediaItem(progress: Long)
 
     fun stopPlaying()
 
