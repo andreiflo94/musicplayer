@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
+    id("app.cash.sqldelight") version "2.0.2"
 }
 
 android {
@@ -56,6 +57,7 @@ dependencies {
     implementation("androidx.media:media:1.7.0")
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
     implementation("androidx.activity:activity-compose:1.9.1")
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("androidx.compose.ui:ui")
@@ -98,4 +100,18 @@ dependencies {
     implementation("androidx.media3:media3-session:1.4.0")
     implementation("androidx.compose.material:material:1.6.8")
 
+    //sqldelight
+    implementation("app.cash.sqldelight:android-driver:2.0.2")
+    implementation("app.cash.sqldelight:coroutines-extensions:2.0.2")
+
+
 }
+
+sqldelight {
+    databases {
+        create("musicplayer") {
+            packageName.set("com.example.musicplayer")
+        }
+    }
+}
+

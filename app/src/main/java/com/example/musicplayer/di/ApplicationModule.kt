@@ -4,8 +4,10 @@ import android.content.ContentResolver
 import android.content.Context
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
-import com.example.musicplayer.mainfeature.data.MediaControllerManagerImpl
-import com.example.musicplayer.mainfeature.domain.MediaControllerManager
+import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import com.example.musicplayer.data.MediaControllerManagerImpl
+import com.example.musicplayer.domain.MediaControllerManager
+import com.example.musicplayer.musicplayer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,16 +19,33 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 class ApplicationModule {
 
-    @Provides
-    @Singleton
-    fun provideContentResolver(@ApplicationContext context: Context): ContentResolver {
-        return context.contentResolver
-    }
-
     @OptIn(UnstableApi::class)
     @Provides
     @Singleton
     fun provideMediaControllerManager(@ApplicationContext context: Context): MediaControllerManager {
         return MediaControllerManagerImpl(context)
     }
+
+    @Provides
+    @Singleton
+    fun provideAndroidSqliteDriver(@ApplicationContext context: Context): AndroidSqliteDriver {
+        return AndroidSqliteDriver(
+            schema = musicplayer.Schema,
+            context = context,
+            name = "musicplayer.db"
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideContentResolver(@ApplicationContext context: Context): ContentResolver {
+        return context.contentResolver
+    }
+
+    @Provides
+    @Singleton
+    fun provideDatabase(driver: AndroidSqliteDriver): musicplayer {
+        return musicplayer(driver)
+    }
+
 }

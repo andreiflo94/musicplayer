@@ -1,0 +1,39 @@
+CREATE TABLE Playlist (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE PlaylistTrack (
+    playlist_id INTEGER NOT NULL,
+    track_name TEXT NOT NULL,
+    path TEXT NOT NULL PRIMARY KEY, -- Set 'path' as the primary key
+    art_path TEXT,
+    FOREIGN KEY (playlist_id) REFERENCES Playlist(id) ON DELETE CASCADE
+);
+
+-- Playlist Queries
+insertPlaylist:
+INSERT INTO Playlist (name) VALUES (?);
+
+selectAllPlaylists:
+SELECT * FROM Playlist;
+
+selectPlaylistById:
+SELECT * FROM Playlist WHERE id = ?;
+
+deletePlaylistById:
+DELETE FROM Playlist WHERE id = ?;
+
+-- Custom Query to Get the Last Inserted Playlist ID
+selectLastInsertedPlaylistId:
+SELECT last_insert_rowid();
+
+-- PlaylistTrack Queries
+insertTrack:
+INSERT INTO PlaylistTrack (playlist_id, track_name, path, art_path) VALUES (?, ?, ?,?);
+
+selectTracksByPlaylistId:
+SELECT * FROM PlaylistTrack WHERE playlist_id = ?;
+
+deleteTrackById:
+DELETE FROM PlaylistTrack WHERE path = ?;
