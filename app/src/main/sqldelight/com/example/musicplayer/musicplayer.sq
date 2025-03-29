@@ -8,7 +8,8 @@ CREATE TABLE PlaylistTrack (
     track_name TEXT NOT NULL,
     path TEXT NOT NULL PRIMARY KEY, -- Set 'path' as the primary key
     art_path TEXT,
-    FOREIGN KEY (playlist_id) REFERENCES Playlist(id) ON DELETE CASCADE
+    FOREIGN KEY (playlist_id) REFERENCES Playlist(id) ON DELETE CASCADE,
+    UNIQUE (playlist_id, path) -- Ensure no duplicate track in the same playlist
 );
 
 -- Playlist Queries
@@ -30,7 +31,7 @@ SELECT last_insert_rowid();
 
 -- PlaylistTrack Queries
 insertTrack:
-INSERT INTO PlaylistTrack (playlist_id, track_name, path, art_path) VALUES (?, ?, ?,?);
+INSERT OR IGNORE INTO PlaylistTrack (playlist_id, track_name, path, art_path) VALUES (?, ?, ?,?);
 
 selectTracksByPlaylistId:
 SELECT * FROM PlaylistTrack WHERE playlist_id = ?;

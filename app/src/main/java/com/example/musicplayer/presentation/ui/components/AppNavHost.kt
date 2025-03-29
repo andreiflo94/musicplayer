@@ -25,6 +25,7 @@ import com.example.musicplayer.presentation.ui.navhosts.PlaylistsNavHost
 sealed class Screen(val route: String) {
     object MusicFoldersScreen : Screen("music_folders_screen")
     object PlaylistsScreen: Screen("playlists_lists")
+    object PlaylistTracksScreen : Screen("playlist_tracks_screen")
 }
 
 @Composable
@@ -68,14 +69,14 @@ fun AppNavHost(
                         MusicFolderNavHost(startAudioPlayback)
                     }
                     Box(modifier = Modifier.weight(1f)) {
-                        PlaylistsNavHost()
+                        PlaylistsNavHost(startAudioPlayback)
                     }
                 }
             } else {
                 // Show only one page on phones
                 when (selectedItem.intValue) {
                     0 -> MusicFolderNavHost(startAudioPlayback)
-                    1 -> PlaylistsNavHost()
+                    1 -> PlaylistsNavHost(startAudioPlayback)
                 }
             }
         }
