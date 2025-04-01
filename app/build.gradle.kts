@@ -103,8 +103,6 @@ dependencies {
     //sqldelight
     implementation("app.cash.sqldelight:android-driver:2.0.2")
     implementation("app.cash.sqldelight:coroutines-extensions:2.0.2")
-
-
 }
 
 sqldelight {
