@@ -1,6 +1,5 @@
-Simple music player app that utilizes media3 api.
- 
 
+A simple music player app that utilizes the Media3 API to play tracks from internal storage and SQLDelight to create playlists.
 
-https://github.com/user-attachments/assets/e1a0b4e5-9ec5-4056-bf3b-8e5ab1edfb7b
+https://github.com/user-attachments/assets/a047b925-7b61-471b-822f-b29a360a0896
 
