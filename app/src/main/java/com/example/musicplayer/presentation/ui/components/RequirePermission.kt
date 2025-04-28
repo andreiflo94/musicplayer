@@ -66,7 +66,7 @@ fun RequiredPermission(
                             playPauseClick = playPauseClick,
                             stopPlayingClick = stopPlayingClick,
                             onProgressUpdate = onProgressUpdate,
-                            playPrevious = playPrevious,
+                            playPreviousTrack = playPrevious,
                             playNextTrack = playNextTrack,
                         )
                     },

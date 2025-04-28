@@ -103,4 +103,18 @@ object MusicUtils {
         return musicFiles
     }
 
+    fun formatDurationFromSeconds(seconds: Long): String {
+        val totalSeconds = seconds.toInt()
+        val minutes = totalSeconds / 60
+        val remainingSeconds = totalSeconds % 60
+        return String.format("%d:%02d", minutes, remainingSeconds)
+    }
+
+    fun formatDurationFromMillis(milliseconds: Long): String {
+        val totalSeconds = (milliseconds / 1000).toInt()
+        val minutes = totalSeconds / 60
+        val remainingSeconds = totalSeconds % 60
+        return String.format("%d:%02d", minutes, remainingSeconds)
+    }
+
 }

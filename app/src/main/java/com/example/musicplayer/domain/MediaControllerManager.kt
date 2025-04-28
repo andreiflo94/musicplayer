@@ -27,7 +27,9 @@ interface MediaControllerManager {
 
     fun currentTrackDuration(): Long
 
-    fun getCurrentTrackName(): String
+    fun getCurrentPlayingTrackName(): String
+
+    fun getCurrentPlayingTrackPath(): String
 
     fun setCurrentTrackPlayingIndex()
 

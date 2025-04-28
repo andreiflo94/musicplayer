@@ -42,6 +42,9 @@ class PlaylistRepositoryImpl(database: musicplayer) : PlaylistRepository {
 
     // PlaylistTrack CRUD Operations
     override fun insertTrack(playlistId: Long, trackName: String, path: String, artPath: String?) {
+        val exists = queries.trackExistsInPlaylist(playlistId, path)
+        if(exists.executeAsOne())
+            return
         queries.insertTrack(playlistId, trackName, path, artPath)
     }
 

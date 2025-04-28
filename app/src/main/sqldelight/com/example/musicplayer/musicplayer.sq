@@ -38,3 +38,7 @@ SELECT * FROM PlaylistTrack WHERE playlist_id = ?;
 
 deleteTrackById:
 DELETE FROM PlaylistTrack WHERE path = ?;
+
+-- Check if track exists in playlist
+trackExistsInPlaylist:
+SELECT EXISTS(SELECT 1 FROM PlaylistTrack WHERE playlist_id = ? AND path = ?);

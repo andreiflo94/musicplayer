@@ -7,4 +7,6 @@ interface MusicFoldersRepository {
     suspend fun getMusicFolders(): List<MusicFolder>
 
     suspend fun getMusicFilesFromPath(path: String): List<MusicFolder>
+
+    fun getAlbumIconUrl(albumPath: String): String
 }

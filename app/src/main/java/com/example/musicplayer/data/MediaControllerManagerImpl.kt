@@ -52,7 +52,7 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
         }
     }
 
-    override fun isCurrentlyPlaying(): Boolean{
+    override fun isCurrentlyPlaying(): Boolean {
         Log.d("MediaControllerManager", "isCurrentlyPlaying: ${controller?.isPlaying}")
         return controller?.isPlaying == true
     }
@@ -61,9 +61,14 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
 
     override fun currentTrackDuration() = controller?.duration ?: 0
 
-    override fun getCurrentTrackName(): String {
+    override fun getCurrentPlayingTrackName(): String {
         Log.d("MediaControllerManager", "getCurrentTrackName: ")
         return trackList[currentTrackIndex].split("/").last()
+    }
+
+    override fun getCurrentPlayingTrackPath(): String {
+        Log.d("MediaControllerManager", "getCurrentTrackPath: ")
+        return trackList[currentTrackIndex]
     }
 
     override fun setCurrentTrackPlayingIndex() {
@@ -101,9 +106,9 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
 
     override fun seekToPreviousMediaItem(progress: Long) {
         Log.d("MediaControllerManager", "seekToPreviousMediaItem: $progress")
-        if(progress > 0){
+        if (progress > 0) {
             controller?.seekTo(0)
-        }else if (controller?.hasPreviousMediaItem() == true) {
+        } else if (controller?.hasPreviousMediaItem() == true) {
             controller?.seekToPreviousMediaItem()
         } else {
             controller?.seekTo(0)

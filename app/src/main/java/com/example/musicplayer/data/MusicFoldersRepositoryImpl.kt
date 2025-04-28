@@ -30,7 +30,7 @@ class MusicFoldersRepositoryImpl @Inject constructor(private val contentResolver
         return@withContext processedList
     }
 
-    private fun getAlbumIconUrl(albumPath: String): String {
+    override fun getAlbumIconUrl(albumPath: String): String {
         // Check for common album cover image files in the folder
         val possibleCoverFiles = listOf("cover.jpg", "folder.jpg", "album.jpg", "thumb.jpg")
         val albumCoverFile = possibleCoverFiles.map { File(albumPath, it) }

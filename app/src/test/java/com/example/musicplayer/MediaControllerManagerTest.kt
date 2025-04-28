@@ -38,9 +38,9 @@ class MediaControllerManagerTest {
     }
 
     @Test
-    fun testGetCurrentTrackName() {
-        `when`(mediaControllerManager.getCurrentTrackName()).thenReturn("Song Title")
-        assertEquals("Song Title", mediaControllerManager.getCurrentTrackName())
+    fun testGetCurrentPlayingTrackName() {
+        `when`(mediaControllerManager.getCurrentPlayingTrackName()).thenReturn("Song Title")
+        assertEquals("Song Title", mediaControllerManager.getCurrentPlayingTrackName())
     }
 
     @Test
