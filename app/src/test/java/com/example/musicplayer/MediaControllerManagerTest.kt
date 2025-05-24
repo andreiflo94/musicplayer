@@ -1,6 +1,7 @@
 package com.example.musicplayer
 
 import com.example.musicplayer.domain.MediaControllerManager
+import com.example.musicplayer.domain.model.Track
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -45,7 +46,12 @@ class MediaControllerManagerTest {
 
     @Test
     fun testStartAudioPlayback() {
-        val trackList = listOf("song1.mp3", "song2.mp3")
+        val trackList = listOf(
+            Track(
+                path = "song1.mp3",
+                albumIconUrl = ""
+            ), Track(path = "song2.mp3", albumIconUrl = "")
+        )
         val index = 1
         doNothing().`when`(mediaControllerManager).startAudioPlayback(trackList, index)
         mediaControllerManager.startAudioPlayback(trackList, index)
