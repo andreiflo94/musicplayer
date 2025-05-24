@@ -18,20 +18,20 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.navigation.NavHostController
+import com.example.musicplayer.domain.model.Track
 import com.example.musicplayer.presentation.ui.navhosts.MusicFolderNavHost
 import com.example.musicplayer.presentation.ui.navhosts.PlaylistsNavHost
 
 sealed class Screen(val route: String) {
+    object TracksScreen : Screen("tracks_screen")
     object MusicFoldersScreen : Screen("music_folders_screen")
-    object PlaylistsScreen: Screen("playlists_lists")
+    object PlaylistsScreen : Screen("playlists_lists")
     object PlaylistTracksScreen : Screen("playlist_tracks_screen")
 }
 
 @Composable
 fun AppNavHost(
-    navController: NavHostController,
-    startAudioPlayback: (list: List<String>, index: Int) -> Unit
+    startAudioPlayback: (list: List<Track>, index: Int) -> Unit
 ) {
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp > 600 // Adjust threshold as needed

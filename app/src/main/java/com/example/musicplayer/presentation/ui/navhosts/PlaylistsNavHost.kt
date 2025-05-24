@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.musicplayer.domain.model.Track
 import com.example.musicplayer.presentation.ui.components.Screen
 import com.example.musicplayer.presentation.ui.screens.PlaylistTracksScreen
 import com.example.musicplayer.presentation.ui.screens.PlaylistsScreen
@@ -19,7 +20,7 @@ import com.example.musicplayer.presentation.viewmodels.PlaylistTracksViewModel
 
 @Composable
 fun PlaylistsNavHost(
-    startAudioPlayback: (list: List<String>, index: Int) -> Unit
+    startAudioPlayback: (list: List<Track>, index: Int) -> Unit
 ) {
     val navController = rememberNavController()
     NavHost(
@@ -75,7 +76,7 @@ private fun PlayListsScreen(navController: NavHostController) {
 @Composable
 private fun PlayListTracksScreen(
     playlistTitle: String,
-    startAudioPlayback: (list: List<String>, index: Int) -> Unit
+    startAudioPlayback: (list: List<Track>, index: Int) -> Unit
 ) {
     val playlistTracksViewModel = hiltViewModel<PlaylistTracksViewModel>()
     PlaylistTracksScreen(
@@ -84,9 +85,10 @@ private fun PlayListTracksScreen(
             initialValue = emptyList()
         ),
         onClick = { playlistTrack ->
-            startAudioPlayback(playlistTracksViewModel.playlistTracksState.value.map {
-                it.path
-            }, playlistTracksViewModel.playlistTracksState.value.indexOf(playlistTrack))
+            startAudioPlayback(
+                playlistTracksViewModel.playlistTracksState.value,
+                playlistTracksViewModel.playlistTracksState.value.indexOf(playlistTrack)
+            )
         }
     )
 }

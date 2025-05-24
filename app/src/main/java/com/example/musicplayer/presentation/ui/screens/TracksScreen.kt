@@ -38,17 +38,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.example.musicplayer.domain.model.MusicFolder
+import com.example.musicplayer.domain.model.Track
 import com.example.musicplayer.presentation.ui.components.PlaylistBottomSheet
 import com.example.musicplayer.presentation.viewmodels.PlaylistBottomSheetVm
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MusicFoldersScreen(
+fun TracksScreen(
     title: String,
-    musicFolders: State<List<MusicFolder>>,
-    onClick: (MusicFolder) -> Unit
+    tracks: State<List<Track>>,
+    onClick: (Track) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -65,14 +65,14 @@ fun MusicFoldersScreen(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
-        MusicList(musicFolders.value, onClick)
+        TrackList(tracks.value, onClick)
     }
 }
 
 @Composable
-fun MusicList(
-    musicFolders: List<MusicFolder>,
-    onClick: (MusicFolder) -> Unit,
+fun TrackList(
+    musicFolders: List<Track>,
+    onClick: (Track) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -81,23 +81,24 @@ fun MusicList(
         ),
     ) {
         items(musicFolders) { folder ->
-            MusicFolderItem(folder, onClick)
+            TrackItem(folder, onClick)
         }
     }
 }
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun MusicFolderItem(
-    folder: MusicFolder, onClick: (MusicFolder) -> Unit
+fun TrackItem(
+    track: Track, onClick: (Track) -> Unit
 ) {
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier
             .padding(10.dp, 8.dp, 10.dp, 10.dp)
             .fillMaxWidth()
             .shadow(5.dp, MaterialTheme.shapes.small)
-            .clickable { onClick(folder) },
+            .clickable { onClick(track) },
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.onBackground
     ) {
@@ -115,7 +116,7 @@ fun MusicFolderItem(
             ) {
                 // Display the album icon at the start
                 GlideImage(
-                    model = folder.albumIconUrl,
+                    model = track.albumIconUrl,
                     contentDescription = "album image",
                     modifier = Modifier
                         .size(40.dp)
@@ -124,19 +125,54 @@ fun MusicFolderItem(
                 )
 
                 // Spacer to push the icon to the end
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(0.2f))
 
+                Column(
+                    modifier = Modifier.weight(1f)
+                ){
+                    Text(
+                        text = track.artistName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = track.trackName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                IconButton(
+                    onClick = { showBottomSheet = true },
+                    content = {
+                        Icon(
+                            painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_playlist_add),
+                            contentDescription = "AddToPlaylist",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    })
             }
-
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = folder.name,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
+        }
+        // Show Bottom Sheet when IconButton is clicked
+        if (showBottomSheet) {
+            val playlistBottomSheetVm = hiltViewModel<PlaylistBottomSheetVm>()
+            PlaylistBottomSheet(
+                track = track,
+                playlists = playlistBottomSheetVm.playListsState.collectAsStateWithLifecycle(
+                    initialValue = emptyList()
+                ),
+                addToNewPlaylist = { playlistName, track ->
+                    playlistBottomSheetVm.addToNewPlaylist(playlistName, track)
+                },
+                addToPlaylist = { playlistId, track ->
+                    playlistBottomSheetVm.addToPlaylist(playlistId, track)
+                },
+                onDismiss = { showBottomSheet = false })
         }
     }
 }
@@ -144,9 +180,9 @@ fun MusicFolderItem(
 
 @Preview(showBackground = true)
 @Composable
-fun MusicFoldersScreenPreview() {
-    val musicFolders = remember { mutableStateOf(getSampleMusicFolders()) }
-    MusicFoldersScreen(
+fun TracksScreenPreview() {
+    val musicFolders = remember { mutableStateOf(getSampleTracks()) }
+    TracksScreen(
         title = "Samsung",
         musicFolders
     )
@@ -157,21 +193,22 @@ fun MusicFoldersScreenPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun MusicFolderItemPreview() {
-    val folder = getSampleMusicFolder()
-    MusicFolderItem(folder) {
+fun TrackItemPreview() {
+    val folder = getSampleTrack()
+    TrackItem(folder) {
 
     }
 }
 
-private fun getSampleMusicFolders(): List<MusicFolder> {
+
+private fun getSampleTracks(): List<Track> {
     return listOf(
-        MusicFolder("Folder 1", "", "url1"),
-        MusicFolder("Folder 2", "", "url2"),
-        MusicFolder("Folder 3", "", "url3")
+        Track("", "url1"),
+        Track("", "url2"),
+        Track("", "url3")
     )
 }
 
-private fun getSampleMusicFolder(): MusicFolder {
-    return MusicFolder("Sample Folder", "", "sampleUrl")
+private fun getSampleTrack(): Track {
+    return Track("", "sampleUrl")
 }

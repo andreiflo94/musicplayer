@@ -111,6 +111,9 @@ object MusicUtils {
     }
 
     fun formatDurationFromMillis(milliseconds: Long): String {
+        if (milliseconds <= 0) {
+            return "0:00"
+        }
         val totalSeconds = (milliseconds / 1000).toInt()
         val minutes = totalSeconds / 60
         val remainingSeconds = totalSeconds % 60

@@ -11,6 +11,7 @@ import androidx.media3.session.SessionToken
 import com.example.musicplayer.PlaybackService
 import com.example.musicplayer.domain.MediaControllerEvent
 import com.example.musicplayer.domain.MediaControllerManager
+import com.example.musicplayer.domain.model.Track
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,7 +25,7 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
     private val _mediaControllerEvents =
         MutableStateFlow<MediaControllerEvent>(MediaControllerEvent.Idle)
     private lateinit var controllerFuture: ListenableFuture<MediaController>
-    private lateinit var trackList: List<String>
+    private lateinit var trackList: List<Track>
     private var currentTrackIndex: Int = 0
     private val controller: MediaController?
         get() = if (controllerFuture.isDone) controllerFuture.get() else null
@@ -63,12 +64,13 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
 
     override fun getCurrentPlayingTrackName(): String {
         Log.d("MediaControllerManager", "getCurrentTrackName: ")
-        return trackList[currentTrackIndex].split("/").last()
+        val track = trackList[currentTrackIndex]
+        return track.artistName + " - " + track.trackName
     }
 
     override fun getCurrentPlayingTrackPath(): String {
         Log.d("MediaControllerManager", "getCurrentTrackPath: ")
-        return trackList[currentTrackIndex]
+        return trackList[currentTrackIndex].path
     }
 
     override fun setCurrentTrackPlayingIndex() {
@@ -76,10 +78,10 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
         this.currentTrackIndex = controller?.currentMediaItemIndex ?: 0
     }
 
-    override fun startAudioPlayback(trackList: List<String>, index: Int) {
+    override fun startAudioPlayback(trackList: List<Track>, index: Int) {
         Log.d("MediaControllerManager", "startAudioPlayback: $trackList")
         setCurrentTrackList(trackList, index)
-        val list: List<MediaItem> = trackList.map { track -> MediaItem.fromUri(track) }
+        val list: List<MediaItem> = trackList.map { track -> MediaItem.fromUri(track.path) }
         controller?.setMediaItems(list, index, 0L)
         controller?.prepare()
         controller?.play()
@@ -126,7 +128,7 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
         controller?.seekTo(seekTo)
     }
 
-    private fun setCurrentTrackList(trackList: List<String>, index: Int) {
+    private fun setCurrentTrackList(trackList: List<Track>, index: Int) {
         Log.d("MediaControllerManager", "setCurrentTrackList: $trackList")
         this.trackList = trackList
         this.currentTrackIndex = index

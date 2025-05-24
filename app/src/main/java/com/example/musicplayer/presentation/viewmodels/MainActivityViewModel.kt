@@ -8,6 +8,7 @@ import androidx.media3.common.util.UnstableApi
 import com.example.musicplayer.data.MusicUtils
 import com.example.musicplayer.domain.MediaControllerEvent
 import com.example.musicplayer.domain.MediaControllerManager
+import com.example.musicplayer.domain.model.Track
 import com.example.musicplayer.domain.repo.MusicFoldersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -74,9 +75,9 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
                                 stateUpdateStopAudio()
                                 stopProgressUpdate()
                             }
-
+                            Player.STATE_READY,
                             Player.STATE_BUFFERING -> {
-                                Log.d("MainActivityViewModel", "Player state: STATE_BUFFERING")
+                                Log.d("MainActivityViewModel", "Player state: STATE_READY, STATE_BUFFERING")
                                 stateUpdateStartOrResume()
                                 mediaControllerManager.setCurrentTrackPlayingIndex()
                             }
@@ -112,7 +113,7 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
         super.onCleared()
     }
 
-    fun startAudioPlayback(trackList: List<String>, index: Int) {
+    fun startAudioPlayback(trackList: List<Track>, index: Int) {
         mediaControllerManager.startAudioPlayback(trackList, index)
     }
 

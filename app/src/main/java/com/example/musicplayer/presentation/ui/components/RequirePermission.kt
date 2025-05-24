@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.musicplayer.domain.model.Track
 import com.example.musicplayer.presentation.ui.screens.HomeScreen
 import com.example.musicplayer.presentation.viewmodels.AudioState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -40,8 +41,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RequiredPermission(
-    navController: NavHostController,
-    startAudioPlayback: (list: List<String>, index: Int) -> Unit,
+    startAudioPlayback: (list: List<Track>, index: Int) -> Unit,
     playPauseClick: () -> Unit,
     stopPlayingClick: () -> Unit,
     playNextTrack: () -> Unit,
@@ -72,7 +72,6 @@ fun RequiredPermission(
                     },
                     content = {
                         AppNavHost(
-                            navController = navController,
                             startAudioPlayback = { list, index ->
                                 startAudioPlayback(list, index)
                             }

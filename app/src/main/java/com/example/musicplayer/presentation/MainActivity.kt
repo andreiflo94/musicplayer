@@ -37,7 +37,6 @@ class MainActivity : ComponentActivity() {
     fun MusicPlayerApp() {
         navController = rememberNavController()
         RequiredPermission(
-            navController = navController as NavHostController,
             startAudioPlayback = { trackList, index ->
                 viewModel.startAudioPlayback(trackList, index)
             },

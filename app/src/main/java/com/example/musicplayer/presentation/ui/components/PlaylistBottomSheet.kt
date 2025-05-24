@@ -40,14 +40,15 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.musicplayer.domain.model.MusicFolder
 import com.example.musicplayer.domain.model.Playlist
+import com.example.musicplayer.domain.model.Track
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistBottomSheet(
-    folder: MusicFolder,
+    track: Track,
     playlists: State<List<Playlist>>,
-    addToNewPlaylist: (playListName: String, musicFolder: MusicFolder) -> Unit,
-    addToPlaylist: (playlistId: Long, musicFolder: MusicFolder) -> Unit,
+    addToNewPlaylist: (playListName: String, track: Track) -> Unit,
+    addToPlaylist: (playlistId: Long, track: Track) -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState =
@@ -92,7 +93,7 @@ fun PlaylistBottomSheet(
             Button(
                 onClick = {
                     if (newPlaylistName.isNotBlank()) {
-                        addToNewPlaylist(newPlaylistName, folder)
+                        addToNewPlaylist(newPlaylistName, track)
                         Toast.makeText(context, "Playlist '$newPlaylistName' created!", Toast.LENGTH_SHORT).show() // Show Toast
                         newPlaylistName = ""
                         onDismiss()
@@ -122,7 +123,7 @@ fun PlaylistBottomSheet(
                         .clickable { /* Handle adding song to this playlist */ }
                         .padding(vertical = 12.dp)
                         .clickable {
-                            addToPlaylist(playlist.id, folder)
+                            addToPlaylist(playlist.id, track)
                             Toast.makeText(context, "Track added to '${playlist.name}'", Toast.LENGTH_SHORT).show() // Show Toast
                             onDismiss()
                         },

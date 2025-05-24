@@ -1,6 +1,7 @@
 package com.example.musicplayer.domain
 
 import androidx.media3.common.MediaItem
+import com.example.musicplayer.domain.model.Track
 import kotlinx.coroutines.flow.StateFlow
 
 sealed class MediaControllerEvent {
@@ -33,7 +34,7 @@ interface MediaControllerManager {
 
     fun setCurrentTrackPlayingIndex()
 
-    fun startAudioPlayback(trackList: List<String>, index: Int)
+    fun startAudioPlayback(trackList: List<Track>, index: Int)
 
     fun playPauseClick()
 

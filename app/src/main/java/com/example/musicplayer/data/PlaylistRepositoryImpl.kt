@@ -43,14 +43,19 @@ class PlaylistRepositoryImpl(database: musicplayer) : PlaylistRepository {
     // PlaylistTrack CRUD Operations
     override fun insertTrack(playlistId: Long, trackName: String, path: String, artPath: String?) {
         val exists = queries.trackExistsInPlaylist(playlistId, path)
-        if(exists.executeAsOne())
+        if (exists.executeAsOne())
             return
         queries.insertTrack(playlistId, trackName, path, artPath)
     }
 
     override fun getTracksForPlaylist(playlistId: Long): List<Track> {
         return queries.selectTracksByPlaylistId(playlistId).executeAsList().map {
-            Track(it.track_name, it.path, it.art_path)
+            Track(
+                artistName = it.track_name.split(" - ")[0],
+                trackName = it.track_name.split(" - ")[1],
+                path = it.path,
+                albumIconUrl = it.art_path
+            )
         }
     }
 
@@ -58,13 +63,19 @@ class PlaylistRepositoryImpl(database: musicplayer) : PlaylistRepository {
         queries.deleteTrackById(path)
     }
 
-    override fun insertTrackToNewPlaylist(playlistName: String, trackName: String, path: String, artPath: String?) {
+    override fun insertTrackToNewPlaylist(
+        playlistName: String,
+        trackName: String,
+        path: String,
+        artPath: String?
+    ) {
         queries.transaction {
             // Insert the new playlist
             queries.insertPlaylist(playlistName)
 
             // Insert the track into the new playlist (using last inserted playlist id)
-            val playlistId = queries.selectLastInsertedPlaylistId().executeAsOne() // Replace this query accordingly
+            val playlistId = queries.selectLastInsertedPlaylistId()
+                .executeAsOne() // Replace this query accordingly
 
             queries.insertTrack(playlistId, trackName, path, artPath)
         }

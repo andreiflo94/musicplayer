@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicplayer.domain.model.MusicFolder
 import com.example.musicplayer.domain.model.Playlist
+import com.example.musicplayer.domain.model.Track
 import com.example.musicplayer.domain.repo.PlaylistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -15,20 +16,20 @@ class PlaylistBottomSheetVm @Inject constructor(private val playListRepository: 
     ViewModel() {
     val playListsState: Flow<List<Playlist>> = playListRepository.getAllPlaylists()
 
-    fun addToNewPlaylist(playlistName: String, musicFolder: MusicFolder) {
+    fun addToNewPlaylist(playlistName: String, track: Track) {
         viewModelScope.launch {
             playListRepository.insertTrackToNewPlaylist(
                 playlistName,
-                musicFolder.name, musicFolder.path, musicFolder.albumIconUrl
+                track.name, track.path, track.albumIconUrl
             )
         }
     }
 
-    fun addToPlaylist(playlistId: Long, musicFolder: MusicFolder) {
+    fun addToPlaylist(playlistId: Long, track: Track) {
         viewModelScope.launch {
             playListRepository.insertTrack(
                 playlistId,
-                musicFolder.name, musicFolder.path, musicFolder.albumIconUrl
+                track.name, track.path, track.albumIconUrl
             )
         }
     }
