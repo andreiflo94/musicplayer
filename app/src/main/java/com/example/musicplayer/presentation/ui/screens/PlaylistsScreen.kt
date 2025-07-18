@@ -35,7 +35,6 @@ import com.example.musicplayer.domain.model.Playlist
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun PlaylistsScreen(
-    navController: NavHostController,
     title: String, playlists: State<List<Playlist>>,
     onClick: (Playlist) -> Unit,
     onRemove: (Playlist) -> Unit

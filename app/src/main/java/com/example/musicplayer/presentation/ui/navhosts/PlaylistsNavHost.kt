@@ -58,7 +58,6 @@ fun PlaylistsNavHost(
 private fun PlayListsScreen(navController: NavHostController) {
     val myPlaylistsViewModel = hiltViewModel<MyPlaylistsViewModel>()
     PlaylistsScreen(
-        navController = navController,
         title = "My Playlists",
         playlists = myPlaylistsViewModel.playListsState.collectAsStateWithLifecycle(
             initialValue = emptyList()

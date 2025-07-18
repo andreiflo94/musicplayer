@@ -3,6 +3,7 @@ package com.example.musicplayer.presentation.ui.navhosts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,6 +14,7 @@ import com.example.musicplayer.presentation.ui.components.Screen
 import com.example.musicplayer.presentation.ui.screens.MusicFoldersScreen
 import com.example.musicplayer.presentation.ui.screens.TracksScreen
 import com.example.musicplayer.presentation.viewmodels.MusicFoldersViewModel
+import com.example.musicplayer.presentation.viewmodels.PlaylistBottomSheetVm
 import com.example.musicplayer.presentation.viewmodels.TracksViewModel
 
 
@@ -58,11 +60,19 @@ fun MusicFolderNavHost(
                 ?.takeIf { it.isNotBlank() } ?: "Music Folders"
 
             val tracksViewModel = hiltViewModel<TracksViewModel>()
+            val playlistBottomSheetVm = hiltViewModel<PlaylistBottomSheetVm>()
             TracksScreen(
                 title = pageTitle,
-                tracks = tracksViewModel.tracksState.collectAsState(
-                    initial = emptyList()
-                )
+                tracks = tracksViewModel.tracksState.collectAsStateWithLifecycle(),
+                playlists = playlistBottomSheetVm.playListsState.collectAsStateWithLifecycle(
+                    emptyList()
+                ),
+                addToNewPlaylist = { playlistName, track ->
+                    playlistBottomSheetVm.addToNewPlaylist(playlistName, track)
+                },
+                addToPlaylist = { playListId, track ->
+                    playlistBottomSheetVm.addToPlaylist(playListId, track)
+                },
             ) { musicFolder ->
                 startAudioPlayback(tracksViewModel.tracksState.value, tracksViewModel.tracksState.value.indexOf(musicFolder))
                 return@TracksScreen

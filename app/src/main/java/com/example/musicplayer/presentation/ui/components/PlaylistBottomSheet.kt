@@ -46,7 +46,7 @@ import com.example.musicplayer.domain.model.Track
 @Composable
 fun PlaylistBottomSheet(
     track: Track,
-    playlists: State<List<Playlist>>,
+    playlists: List<Playlist>,
     addToNewPlaylist: (playListName: String, track: Track) -> Unit,
     addToPlaylist: (playlistId: Long, track: Track) -> Unit,
     onDismiss: () -> Unit
@@ -116,7 +116,7 @@ fun PlaylistBottomSheet(
             Divider()
 
             // List of Existing Playlists
-            playlists.value.forEach { playlist ->
+            playlists.forEach { playlist ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

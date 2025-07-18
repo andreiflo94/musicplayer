@@ -12,9 +12,7 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
-import com.example.musicplayer.R
 import com.example.musicplayer.presentation.viewmodels.AudioState
 
 @Composable
