@@ -12,19 +12,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.musicplayer.domain.model.Playlist
 import com.example.musicplayer.domain.model.Track
-import com.example.musicplayer.presentation.ui.components.PlaylistBottomSheet
 
 @Composable
 fun TracksScreen(
     title: String,
-    tracks: List<Track>,           // Pass List instead of State
-    playlists: List<Playlist>,      // Pass List instead of State
+    tracks: List<Track>,
+    playlists: List<Playlist>,
     addToNewPlaylist: (String, Track) -> Unit,
     addToPlaylist: (Long, Track) -> Unit,
     onClick: (Track) -> Unit
@@ -36,24 +34,12 @@ fun TracksScreen(
             .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
     ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 16.dp),
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-
-        TrackList(
-            tracks = tracks,
-            showAddToPlaylist = { track -> selectedTrack = track },
-            onClick = onClick
-        )
+        ScreenTitle(title)
+        TrackList(tracks, showAddToPlaylist = { selectedTrack = it }, onClick)
     }
 
     selectedTrack?.let { track ->
-        PlaylistBottomSheet(
+        PlaylistBottomSheetScreen(
             track = track,
             playlists = playlists,
             addToNewPlaylist = addToNewPlaylist,
@@ -64,7 +50,19 @@ fun TracksScreen(
 }
 
 @Composable
-fun TrackList(
+private fun ScreenTitle(title: String) {
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp, vertical = 16.dp),
+        text = title,
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onBackground
+    )
+}
+
+@Composable
+private fun TrackList(
     tracks: List<Track>,
     showAddToPlaylist: (Track) -> Unit,
     onClick: (Track) -> Unit
@@ -73,15 +71,15 @@ fun TrackList(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 150.dp)
     ) {
-        items(tracks, key = { it.trackName }) { track -> // stable key
-            TrackItem(track, showAddToPlaylist, onClick)
+        items(tracks, key = { it.trackName }) {
+            TrackItem(it, showAddToPlaylist, onClick)
         }
     }
 }
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun TrackItem(
+private fun TrackItem(
     track: Track,
     showAddToPlaylist: (Track) -> Unit,
     onClick: (Track) -> Unit
@@ -101,73 +99,52 @@ fun TrackItem(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            GlideImage(
-                model = track.albumIconUrl,
-                contentDescription = "album image",
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(MaterialTheme.colorScheme.secondary)
-            )
-
+            AlbumImage(track.albumIconUrl)
             Spacer(modifier = Modifier.width(8.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = track.artistName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = track.trackName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            IconButton(onClick = { showAddToPlaylist(track) }) {
-                Icon(
-                    painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_playlist_add),
-                    contentDescription = "AddToPlaylist",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+            TrackInfo(track)
+            Spacer(modifier = Modifier.weight(1f))
+            AddToPlaylistButton { showAddToPlaylist(track) }
         }
     }
 }
 
-// ---- Sample Data / Previews ----
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun rememberSampleTracks() = remember {
-    listOf(
-        Track("Artist 1", "url1"),
-        Track("Artist 2", "url2"),
-        Track("Artist 3", "url3")
+private fun AlbumImage(albumIconUrl: String?) {
+    GlideImage(
+        model = albumIconUrl,
+        contentDescription = "album image",
+        modifier = Modifier
+            .size(40.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.secondary)
     )
 }
 
 @Composable
-fun rememberSamplePlaylists() = remember {
-    listOf(
-        Playlist(1, "Playlist 1"),
-        Playlist(2, "Playlist 2"),
-        Playlist(3, "Playlist 3")
-    )
+private fun TrackInfo(track: Track) {
+    Column{
+        Text(
+            text = track.artistName,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = track.trackName,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun TracksScreenPreview() {
-    val tracks = rememberSampleTracks()
-    val playlists = rememberSamplePlaylists()
-
-    TracksScreen(
-        title = "Favorite Tracks",
-        tracks = tracks,
-        playlists = playlists,
-        addToNewPlaylist = { name, track -> println("Add '${track.trackName}' to new playlist '$name'") },
-        addToPlaylist = { id, track -> println("Add '${track.trackName}' to playlist $id") },
-        onClick = { track -> println("Clicked track: ${track.trackName}") }
-    )
+private fun AddToPlaylistButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_playlist_add),
+            contentDescription = "AddToPlaylist",
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }
 }

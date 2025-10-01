@@ -2,15 +2,7 @@ package com.example.musicplayer.presentation.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -37,21 +29,25 @@ fun MusicFoldersScreen(
             .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
     ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 16.dp),
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-
+        ScreenTitle(title)
         MusicList(musicFolders, onClick)
     }
 }
 
 @Composable
-fun MusicList(
+private fun ScreenTitle(title: String) {
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp, vertical = 16.dp),
+        text = title,
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onBackground
+    )
+}
+
+@Composable
+private fun MusicList(
     musicFolders: List<MusicFolder>,
     onClick: (MusicFolder) -> Unit,
 ) {
@@ -70,7 +66,7 @@ fun MusicList(
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun MusicFolderItem(
+private fun MusicFolderItem(
     folder: MusicFolder,
     onClick: (MusicFolder) -> Unit
 ) {
@@ -92,15 +88,7 @@ fun MusicFolderItem(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                GlideImage(
-                    model = folder.albumIconUrl,
-                    contentDescription = "album image",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(MaterialTheme.colorScheme.secondary)
-                )
-
+                AlbumImage(folder.albumIconUrl)
                 Spacer(modifier = Modifier.weight(1f))
             }
 
@@ -113,4 +101,17 @@ fun MusicFolderItem(
             )
         }
     }
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+private fun AlbumImage(albumIconUrl: String?) {
+    GlideImage(
+        model = albumIconUrl,
+        contentDescription = "album image",
+        modifier = Modifier
+            .size(40.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.primary)
+    )
 }
