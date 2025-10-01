@@ -27,7 +27,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,7 +37,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.example.musicplayer.domain.model.MusicFolder
 import com.example.musicplayer.domain.model.Playlist
 import com.example.musicplayer.domain.model.Track
 
@@ -51,10 +49,9 @@ fun PlaylistBottomSheet(
     addToPlaylist: (playlistId: Long, track: Track) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = false) // Ensure it expands
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var newPlaylistName by remember { mutableStateOf("") }
-    val context = LocalContext.current // Get the context for showing Toast
+    val context = LocalContext.current
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -64,48 +61,51 @@ fun PlaylistBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.5f) // <-- Adjust this to control how much space it takes
+                .fillMaxHeight(0.5f)
                 .background(MaterialTheme.colorScheme.onBackground)
                 .padding(16.dp)
         ) {
-            // Input Field for New Playlist with Placeholder
+            // New Playlist Input
             OutlinedTextField(
                 value = newPlaylistName,
                 onValueChange = { newPlaylistName = it },
-                label = { Text("Enter playlist name") }, // Placeholder text
+                label = { Text("Enter playlist name") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    textColor = Color.Black, // Text color
-                    placeholderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f), // Hint color
-                    cursorColor = MaterialTheme.colorScheme.background, // Cursor color
-                    focusedBorderColor = MaterialTheme.colorScheme.background, // Border when focused
-                    unfocusedBorderColor = MaterialTheme.colorScheme.background.copy(alpha = 0.5f), // Border when not focused
-                    focusedLabelColor = MaterialTheme.colorScheme.onBackground, // Label color when focused
-                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f) // Label color when not focused
+                    textColor = Color.Black,
+                    placeholderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    cursorColor = MaterialTheme.colorScheme.background,
+                    focusedBorderColor = MaterialTheme.colorScheme.background,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
+                    focusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                 ),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Add Playlist Button
+            val canAddNew = newPlaylistName.isNotBlank()
             Button(
                 onClick = {
-                    if (newPlaylistName.isNotBlank()) {
-                        addToNewPlaylist(newPlaylistName, track)
-                        Toast.makeText(context, "Playlist '$newPlaylistName' created!", Toast.LENGTH_SHORT).show() // Show Toast
-                        newPlaylistName = ""
-                        onDismiss()
-                    }
+                    addToNewPlaylist(newPlaylistName, track)
+                    Toast.makeText(
+                        context,
+                        "Playlist '$newPlaylistName' created!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    newPlaylistName = ""
+                    onDismiss()
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = newPlaylistName.isNotBlank(),
+                enabled = canAddNew,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.background, // Background color
-                    contentColor = MaterialTheme.colorScheme.onBackground, // Text/Icon color
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), // Disabled background
-                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f) // Disabled text/icon
+                    containerColor = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                    disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
@@ -113,20 +113,23 @@ fun PlaylistBottomSheet(
                 Text("Add Playlist")
             }
 
-            Divider()
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            // List of Existing Playlists
+            // Existing Playlists
             playlists.forEach { playlist ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { /* Handle adding song to this playlist */ }
-                        .padding(vertical = 12.dp)
                         .clickable {
                             addToPlaylist(playlist.id, track)
-                            Toast.makeText(context, "Track added to '${playlist.name}'", Toast.LENGTH_SHORT).show() // Show Toast
+                            Toast.makeText(
+                                context,
+                                "Track added to '${playlist.name}'",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             onDismiss()
-                        },
+                        }
+                        .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -135,7 +138,10 @@ fun PlaylistBottomSheet(
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(end = 8.dp),
                     )
-                    Text(text = playlist.name, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        text = playlist.name,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         }

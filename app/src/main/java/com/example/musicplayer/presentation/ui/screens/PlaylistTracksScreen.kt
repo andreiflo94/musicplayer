@@ -19,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,7 +33,20 @@ import com.example.musicplayer.domain.model.Track
 @Composable
 fun PlaylistTracksScreen(
     title: String,
-    tracks: State<List<Track>>,
+    tracks: List<Track>,
+    onClick: (Track) -> Unit
+) {
+    PlaylistTracksScreenContent(
+        title = title,
+        tracks = tracks,
+        onClick = onClick
+    )
+}
+
+@Composable
+private fun PlaylistTracksScreenContent(
+    title: String,
+    tracks: List<Track>,
     onClick: (Track) -> Unit
 ) {
     Column(
@@ -52,23 +64,21 @@ fun PlaylistTracksScreen(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
-        PlaylistTracks(tracks.value, onClick)
+
+        PlaylistTracksList(tracks, onClick)
     }
 }
 
-
 @Composable
-fun PlaylistTracks(
+private fun PlaylistTracksList(
     tracks: List<Track>,
-    onClick: (Track) -> Unit,
+    onClick: (Track) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            bottom = 150.dp,
-        ),
+        contentPadding = PaddingValues(bottom = 150.dp)
     ) {
-        items(tracks) { track ->
+        items(tracks, key = { it.name }) { track ->
             PlaylistTrackItem(track, onClick)
         }
     }
@@ -76,10 +86,10 @@ fun PlaylistTracks(
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun PlaylistTrackItem(
-    track: Track, onClick: (Track) -> Unit
+private fun PlaylistTrackItem(
+    track: Track,
+    onClick: (Track) -> Unit
 ) {
-
     Surface(
         modifier = Modifier
             .padding(10.dp, 8.dp, 10.dp, 10.dp)
@@ -101,7 +111,6 @@ fun PlaylistTrackItem(
                     .wrapContentHeight(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Display the album icon at the start
                 GlideImage(
                     model = track.albumIconUrl,
                     contentDescription = "album image",
@@ -111,16 +120,11 @@ fun PlaylistTrackItem(
                         .background(MaterialTheme.colorScheme.secondary),
                 )
 
-                // Spacer to push the icon to the end
                 Spacer(modifier = Modifier.weight(1f))
-
             }
-
 
             Spacer(modifier = Modifier.height(8.dp))
 
-
-            // Display the album name
             Text(
                 text = track.name,
                 style = MaterialTheme.typography.bodyMedium,

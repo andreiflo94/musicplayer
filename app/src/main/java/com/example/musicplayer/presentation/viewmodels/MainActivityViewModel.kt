@@ -20,27 +20,30 @@ import javax.inject.Inject
 
 @HiltViewModel
 @UnstableApi
-class MainActivityViewModel @Inject constructor(private val mediaControllerManager: MediaControllerManager,
+class MainActivityViewModel @Inject constructor(
+    private val mediaControllerManager: MediaControllerManager,
     private val musicFoldersRepository: MusicFoldersRepository
-) :
-    ViewModel() {
+) : ViewModel() {
 
     private var updateTrackProgressJob: Job? = null
 
     private val _state = MutableStateFlow(
-        AudioState(
+        TrackState(
             trackName = "",
             trackArtUrl = "",
-            progress = 0.0f,
-            trackProgressFormatted = "",
-            trackDurationFormatted = "",
+            trackDurationFormatted = "0:00",
             isPlaying = false,
             stopped = true,
             hasNextMediaItem = false
         )
     )
-    val audioState: StateFlow<AudioState> = _state
+    val trackState: StateFlow<TrackState> = _state
 
+    private val _trackLiveProgress = MutableStateFlow(0f)
+    val trackLiveProgress: StateFlow<Float> = _trackLiveProgress
+
+    private val _trackProgressFormatted = MutableStateFlow("0:00")
+    val trackProgressFormatted: StateFlow<String> = _trackProgressFormatted
 
     init {
         Log.d("MainActivityViewModel", "Initializing ViewModel")
@@ -49,49 +52,38 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
         viewModelScope.launch {
             mediaControllerManager.mediaControllerEvents.collect { event ->
                 Log.d("MainActivityViewModel", "Received event: $event")
-
                 when (event) {
                     is MediaControllerEvent.IsPlayingChanged -> {
-                        Log.d("MainActivityViewModel", "IsPlayingChanged: ${event.isPlaying}")
                         if (event.isPlaying) {
-                            stateUpdateStartOrResume()
+                            updateAudioStateStartOrResume()
                             startProgressUpdate()
                         } else {
-                            stateUpdatePause()
+                            updateAudioStatePause()
                             stopProgressUpdate()
                         }
                     }
-
                     is MediaControllerEvent.MediaItemTransition -> {
-                        Log.d("MainActivityViewModel", "MediaItemTransition event received")
                         mediaControllerManager.setCurrentTrackPlayingIndex()
+                        updateAudioStateStartOrResume()
                     }
-
                     is MediaControllerEvent.PlaybackStateChanged -> {
-                        Log.d("MainActivityViewModel", "PlaybackStateChanged: ${event.playbackState}")
                         when (event.playbackState) {
                             Player.STATE_IDLE -> {
-                                Log.d("MainActivityViewModel", "Player state: STATE_IDLE")
-                                stateUpdateStopAudio()
+                                updateAudioStateStop()
                                 stopProgressUpdate()
                             }
-                            Player.STATE_READY,
-                            Player.STATE_BUFFERING -> {
-                                Log.d("MainActivityViewModel", "Player state: STATE_READY, STATE_BUFFERING")
-                                stateUpdateStartOrResume()
+                            Player.STATE_READY, Player.STATE_BUFFERING -> {
+                                updateAudioStateStartOrResume()
                                 mediaControllerManager.setCurrentTrackPlayingIndex()
                             }
-
                             Player.STATE_ENDED -> {
-                                Log.d("MainActivityViewModel", "Player state: STATE_ENDED")
-                                stateUpdateStopAudio()
+                                updateAudioStateStop()
+                                stopProgressUpdate()
                             }
                         }
                     }
 
-                    else -> {
-                        Log.d("MainActivityViewModel", "Unhandled event type")
-                    }
+                    else -> {}
                 }
             }
         }
@@ -99,52 +91,42 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
 
     override fun onCleared() {
         mediaControllerManager.release()
-        _state.value =
-            AudioState(
-                trackName = "",
-                trackArtUrl = "",
-                progress = 0.0f,
-                trackProgressFormatted = "0:03",
-                trackDurationFormatted = "2:30",
-                isPlaying = false,
-                stopped = true,
-                hasNextMediaItem = false
-            )
+        _state.value = TrackState(
+            trackName = "",
+            trackArtUrl = "",
+            trackDurationFormatted = "0:00",
+            isPlaying = false,
+            stopped = true,
+            hasNextMediaItem = false
+        )
+        _trackLiveProgress.value = 0f
+        _trackProgressFormatted.value = "0:00"
         super.onCleared()
     }
 
     fun startAudioPlayback(trackList: List<Track>, index: Int) {
         mediaControllerManager.startAudioPlayback(trackList, index)
+        updateAudioStateStartOrResume()
     }
 
-    fun playPauseClick() {
-        mediaControllerManager.playPauseClick()
-    }
+    fun playPauseClick() = mediaControllerManager.playPauseClick()
 
-    fun stopPlaying() {
-        mediaControllerManager.stopPlaying()
-    }
+    fun stopPlaying() = mediaControllerManager.stopPlaying()
 
-    fun onProgressUpdate(it: Long) {
-        mediaControllerManager.onProgressUpdate(it)
-    }
+    fun onProgressUpdate(it: Long) = mediaControllerManager.onProgressUpdate(it)
 
-    fun playPrevious() {
-        mediaControllerManager.seekToPreviousMediaItem(audioState.value.progress.toLong())
-    }
+    fun playPrevious() = mediaControllerManager.seekToPreviousMediaItem(_trackLiveProgress.value.toLong())
 
-    fun skipForward() {
-        mediaControllerManager.seekToNextMediaItem()
-    }
+    fun skipForward() = mediaControllerManager.seekToNextMediaItem()
 
-    private fun stateUpdateStartOrResume() {
+    // =========================
+    // State Updates (audio info)
+    // =========================
+
+    private fun updateAudioStateStartOrResume() {
         _state.value = _state.value.copy(
             trackName = mediaControllerManager.getCurrentPlayingTrackName(),
             trackArtUrl = musicFoldersRepository.getAlbumIconUrl(mediaControllerManager.getCurrentPlayingTrackPath()),
-            progress = calculateProgressValue(
-                mediaControllerManager.currentPlayingPosition(),
-                duration = mediaControllerManager.currentTrackDuration()
-            ),
             trackDurationFormatted = MusicUtils.formatDurationFromMillis(mediaControllerManager.currentTrackDuration()),
             isPlaying = mediaControllerManager.isCurrentlyPlaying(),
             stopped = false,
@@ -152,14 +134,10 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
         )
     }
 
-    private fun stateUpdatePause() {
+    private fun updateAudioStatePause() {
         _state.value = _state.value.copy(
             trackName = mediaControllerManager.getCurrentPlayingTrackName(),
             trackArtUrl = musicFoldersRepository.getAlbumIconUrl(mediaControllerManager.getCurrentPlayingTrackPath()),
-            progress = calculateProgressValue(
-                mediaControllerManager.currentPlayingPosition(),
-                duration = mediaControllerManager.currentTrackDuration()
-            ),
             trackDurationFormatted = MusicUtils.formatDurationFromMillis(mediaControllerManager.currentTrackDuration()),
             isPlaying = false,
             stopped = false,
@@ -167,20 +145,7 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
         )
     }
 
-    private fun stateUpdateProgress() {
-        _state.value = _state.value.copy(
-            progress = calculateProgressValue(
-                mediaControllerManager.currentPlayingPosition(),
-                duration = mediaControllerManager.currentTrackDuration()
-            ),
-            trackProgressFormatted = MusicUtils.formatDurationFromMillis(mediaControllerManager.currentPlayingPosition()),
-            isPlaying = true,
-            stopped = false,
-            hasNextMediaItem = mediaControllerManager.hasNextMediaItem()
-        )
-    }
-
-    private fun stateUpdateStopAudio() {
+    private fun updateAudioStateStop() {
         _state.value = _state.value.copy(
             isPlaying = false,
             stopped = true,
@@ -188,11 +153,18 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
         )
     }
 
+    // =========================
+    // Progress Updates (decoupled)
+    // =========================
+
     private fun startProgressUpdate() {
         updateTrackProgressJob = viewModelScope.launch {
             while (true) {
                 delay(100)
-                stateUpdateProgress()
+                val currentPosition = mediaControllerManager.currentPlayingPosition()
+                val duration = mediaControllerManager.currentTrackDuration()
+                _trackLiveProgress.value = if (duration > 0) (currentPosition.toFloat() / duration.toFloat()) * 100f else 0f
+                _trackProgressFormatted.value = MusicUtils.formatDurationFromMillis(currentPosition)
             }
         }
     }
@@ -201,20 +173,13 @@ class MainActivityViewModel @Inject constructor(private val mediaControllerManag
         updateTrackProgressJob?.cancel()
         updateTrackProgressJob = null
     }
-
-    private fun calculateProgressValue(currentProgress: Long, duration: Long): Float {
-        return if (currentProgress > 0) ((currentProgress.toFloat() / duration.toFloat()) * 100f)
-        else 0f
-    }
 }
 
-data class AudioState(
+data class TrackState(
     val trackName: String,
     val trackArtUrl: String,
-    var progress: Float,
-    var trackProgressFormatted: String, //"0:03"
-    var trackDurationFormatted: String, //3:20
-    var isPlaying: Boolean,
-    var stopped: Boolean,
-    var hasNextMediaItem: Boolean,
+    val trackDurationFormatted: String, // adaugat
+    val isPlaying: Boolean,
+    val stopped: Boolean,
+    val hasNextMediaItem: Boolean
 )

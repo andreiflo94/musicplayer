@@ -7,11 +7,33 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,20 +46,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.util.UnstableApi
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.musicplayer.R
-import com.example.musicplayer.data.MusicUtils
-import com.example.musicplayer.presentation.viewmodels.AudioState
+import com.example.musicplayer.presentation.viewmodels.MainActivityViewModel
 
-enum class PlayerExpansionState {
-    COLLAPSED, EXPANDED
-}
+enum class PlayerExpansionState { COLLAPSED, EXPANDED }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun AppPlayerBar(
-    audioState: AudioState,
     playPauseClick: () -> Unit,
     stopPlayingClick: () -> Unit,
     playNextTrack: () -> Unit,
@@ -48,166 +70,148 @@ fun AppPlayerBar(
     val isExpanded = expansionState == PlayerExpansionState.EXPANDED
 
     val playerHeight by animateFloatAsState(
-        targetValue = if (isExpanded) 1f else 0.070f, label = "playerHeight"
+        targetValue = if (isExpanded) 1f else 0.07f,
+        label = "playerHeight"
     )
+    val imageSize by animateDpAsState(targetValue = if (isExpanded) 150.dp else 40.dp)
+    val cornerRadius by animateDpAsState(targetValue = if (isExpanded) 8.dp else 20.dp)
 
-    val imageSize by animateDpAsState(
-        targetValue = if (isExpanded) 150.dp else 40.dp, label = "imageSize"
-    )
+    val currentPlayPause by rememberUpdatedState(playPauseClick)
+    val currentNext by rememberUpdatedState(playNextTrack)
+    val currentPrev by rememberUpdatedState(playPreviousTrack)
+    val currentStop by rememberUpdatedState(stopPlayingClick)
+    val currentProgress by rememberUpdatedState(onProgressUpdate)
 
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isExpanded) 8.dp else 20.dp, label = "cornerRadius"
-    )
-
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .wrapContentHeight()
-        .pointerInput(Unit) {
-            detectVerticalDragGestures(onDragEnd = {},
-                onDragCancel = {}, onVerticalDrag = { change, dragAmount ->
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .pointerInput(Unit) {
+                detectVerticalDragGestures { change, dragAmount ->
                     when {
                         dragAmount < -10 -> expansionState = PlayerExpansionState.EXPANDED
                         dragAmount > 10 -> expansionState = PlayerExpansionState.COLLAPSED
                     }
                     change.consume()
-                })
-        }) {
-
-        Box(modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .fillMaxHeight(playerHeight)
-            .shadow(4.dp)
-            .background(
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            .clickable(enabled = !isExpanded) {
-                expansionState = PlayerExpansionState.EXPANDED
-            }) {
+                }
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .fillMaxHeight(playerHeight)
+                .shadow(4.dp)
+                .background(MaterialTheme.colorScheme.onBackground)
+                .clickable(enabled = !isExpanded) { expansionState = PlayerExpansionState.EXPANDED }
+        ) {
             if (isExpanded) {
                 ExpandedPlayerContent(
-                    audioState = audioState,
                     imageSize = imageSize,
                     cornerRadius = cornerRadius,
-                    trackName = audioState.trackName,
-                    playPauseClick = playPauseClick,
-                    playNextTrack = playNextTrack,
-                    playPreviousTrack = playPreviousTrack,
-                    onProgressUpdate = onProgressUpdate,
-                    stopPlayingClick = stopPlayingClick
+                    playPauseClick = currentPlayPause,
+                    playNextTrack = currentNext,
+                    playPreviousTrack = currentPrev,
+                    stopPlayingClick = currentStop,
+                    onProgressUpdate = currentProgress
                 )
             } else {
                 MiniPlayerContent(
-                    audioState = audioState,
                     imageSize = imageSize,
                     cornerRadius = cornerRadius,
-                    playPauseClick = playPauseClick,
-                    playNextTrack = playNextTrack,
+                    playPauseClick = currentPlayPause,
+                    playNextTrack = currentNext
                 )
             }
         }
     }
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class)
 @Composable
 private fun MiniPlayerContent(
-    audioState: AudioState,
-    imageSize: androidx.compose.ui.unit.Dp,
-    cornerRadius: androidx.compose.ui.unit.Dp,
+    imageSize: Dp,
+    cornerRadius: Dp,
     playPauseClick: () -> Unit,
     playNextTrack: () -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            GlideImage(
-                model = audioState.trackArtUrl,
-                contentDescription = "Album Art",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(imageSize)
-                    .clip(RoundedCornerShape(cornerRadius))
-            )
+    val viewModel: MainActivityViewModel = hiltViewModel()
+    val trackState = viewModel.trackState.collectAsState().value
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp)
-            ) {
-                Text(
-                    text = audioState.trackName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.basicMarquee()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        GlideImage(
+            model = trackState.trackArtUrl,
+            contentDescription = "Album Art",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(imageSize)
+                .clip(RoundedCornerShape(cornerRadius))
+        )
+
+        Text(
+            text = trackState.trackName,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 12.dp)
+                .basicMarquee()
+        )
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = playPauseClick, modifier = Modifier.size(40.dp)) {
+                Icon(
+                    painter = painterResource(id = if (trackState.isPlaying) R.drawable.ic_not_pause else R.drawable.ic_not_play),
+                    contentDescription = if (trackState.isPlaying) "Pause" else "Play",
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(
-                    onClick = { playPauseClick() }, modifier = Modifier.size(40.dp)
-                ) {
+            if (trackState.hasNextMediaItem) {
+                IconButton(onClick = playNextTrack, modifier = Modifier.size(40.dp)) {
                     Icon(
-                        painter = painterResource(
-                            id = if (audioState.isPlaying) R.drawable.ic_not_pause else R.drawable.ic_not_play
-                        ),
-                        contentDescription = if (audioState.isPlaying) "Pause" else "Play",
+                        painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_next),
+                        contentDescription = "Next",
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-
-                if (audioState.hasNextMediaItem) {
-                    IconButton(
-                        onClick = { playNextTrack() }, modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_next),
-                            contentDescription = "Next",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
             }
         }
-
-        LinearProgressIndicator(
-            progress = { audioState.progress / 100f },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(3.dp),
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant
-        )
     }
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun ExpandedPlayerContent(
-    audioState: AudioState,
-    imageSize: androidx.compose.ui.unit.Dp,
-    cornerRadius: androidx.compose.ui.unit.Dp,
-    trackName: String,
+    imageSize: Dp,
+    cornerRadius: Dp,
     playPauseClick: () -> Unit,
     playNextTrack: () -> Unit,
     playPreviousTrack: () -> Unit,
-    onProgressUpdate: (progress: Long) -> Unit,
-    stopPlayingClick: () -> Unit
+    stopPlayingClick: () -> Unit,
+    onProgressUpdate: (progress: Long) -> Unit
 ) {
+    val viewModel: MainActivityViewModel = hiltViewModel()
+    val trackState = viewModel.trackState.collectAsState().value
+    val trackProgress = viewModel.trackLiveProgress.collectAsState().value
+    val trackProgressFormatted = viewModel.trackProgressFormatted.collectAsState().value
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -220,7 +224,6 @@ private fun ExpandedPlayerContent(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-
             IconButton(onClick = stopPlayingClick) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_not_close),
@@ -232,9 +235,8 @@ private fun ExpandedPlayerContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-
         GlideImage(
-            model = audioState.trackArtUrl,
+            model = trackState.trackArtUrl,
             contentDescription = "Album Art",
             contentScale = ContentScale.FillWidth,
             modifier = Modifier
@@ -246,7 +248,7 @@ private fun ExpandedPlayerContent(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = trackName,
+            text = trackState.trackName,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
@@ -257,9 +259,8 @@ private fun ExpandedPlayerContent(
 
         Spacer(modifier = Modifier.weight(1f))
 
-
         Slider(
-            value = audioState.progress,
+            value = trackProgress,
             onValueChange = { onProgressUpdate(it.toLong()) },
             valueRange = 0f..100f,
             colors = SliderDefaults.colors(
@@ -279,13 +280,12 @@ private fun ExpandedPlayerContent(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = audioState.trackProgressFormatted,
+                trackProgressFormatted,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
             )
-
             Text(
-                text = audioState.trackDurationFormatted,
+                trackProgressFormatted,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
             )
@@ -293,7 +293,6 @@ private fun ExpandedPlayerContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Control buttons
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -301,9 +300,7 @@ private fun ExpandedPlayerContent(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = { playPreviousTrack() }, modifier = Modifier.size(48.dp)
-            ) {
+            IconButton(onClick = playPreviousTrack, modifier = Modifier.size(48.dp)) {
                 Icon(
                     painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_next),
                     contentDescription = "Previous",
@@ -312,7 +309,6 @@ private fun ExpandedPlayerContent(
                 )
             }
 
-            // Play/Pause button (larger)
             Box(
                 modifier = Modifier
                     .size(64.dp)
@@ -322,24 +318,22 @@ private fun ExpandedPlayerContent(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(
-                        id = if (audioState.isPlaying) R.drawable.ic_not_pause else R.drawable.ic_not_play
-                    ),
-                    contentDescription = if (audioState.isPlaying) "Pause" else "Play",
+                    painter = painterResource(id = if (trackState.isPlaying) R.drawable.ic_not_pause else R.drawable.ic_not_play),
+                    contentDescription = if (trackState.isPlaying) "Pause" else "Play",
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(32.dp)
                 )
             }
 
             IconButton(
-                onClick = { playNextTrack() },
+                onClick = playNextTrack,
                 modifier = Modifier.size(48.dp),
-                enabled = audioState.hasNextMediaItem
+                enabled = trackState.hasNextMediaItem
             ) {
                 Icon(
                     painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_next),
                     contentDescription = "Next",
-                    tint = if (audioState.hasNextMediaItem) MaterialTheme.colorScheme.primary
+                    tint = if (trackState.hasNextMediaItem) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                 )
             }
@@ -353,16 +347,6 @@ private fun ExpandedPlayerContent(
 @Composable
 fun YouTubeMusicPlayerBarPreview() {
     AppPlayerBar(
-        audioState = AudioState(
-            trackName = "Bohemian Rhapsody",
-            trackArtUrl = "",
-            isPlaying = true,
-            progress = 30.0f,
-            trackProgressFormatted = "",
-            trackDurationFormatted = "",
-            stopped = false,
-            hasNextMediaItem = true
-        ),
         playPauseClick = {},
         stopPlayingClick = {},
         playNextTrack = {},

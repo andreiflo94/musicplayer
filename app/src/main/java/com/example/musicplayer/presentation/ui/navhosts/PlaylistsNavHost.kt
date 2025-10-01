@@ -1,7 +1,6 @@
 package com.example.musicplayer.presentation.ui.navhosts
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -17,34 +16,28 @@ import com.example.musicplayer.presentation.ui.screens.PlaylistsScreen
 import com.example.musicplayer.presentation.viewmodels.MyPlaylistsViewModel
 import com.example.musicplayer.presentation.viewmodels.PlaylistTracksViewModel
 
-
 @Composable
 fun PlaylistsNavHost(
-    startAudioPlayback: (list: List<Track>, index: Int) -> Unit
+    startAudioPlayback: (list: List<Track>, index: Int) -> Unit,
 ) {
     val navController = rememberNavController()
+
     NavHost(
         navController = navController,
-        startDestination = Screen.PlaylistsScreen.route,
+        startDestination = Screen.PlaylistsScreen.route
     ) {
-        composable(
-            route = Screen.PlaylistsScreen.route,
-        ) {
-            PlayListsScreen(navController = navController)
+        composable(route = Screen.PlaylistsScreen.route) {
+            PlayListsScreen(navController)
         }
+
         composable(
             route = Screen.PlaylistTracksScreen.route + "?playlistId={playlistId}&playlistTitle={playlistTitle}",
-            arguments = listOf(navArgument(name = "playlistId") {
-                type = NavType.LongType
-                defaultValue = -1
-            },
-                navArgument(name = "playlistTitle") {
-                    type = NavType.StringType
-                    defaultValue = ""
-                })
+            arguments = listOf(
+                navArgument("playlistId") { type = NavType.LongType; defaultValue = -1 },
+                navArgument("playlistTitle") { type = NavType.StringType; defaultValue = "" }
+            )
         ) { backStackEntry ->
-            val playlistTitle = backStackEntry.arguments?.getString("playlistTitle")
-                ?: "Playlist Tracks"
+            val playlistTitle = backStackEntry.arguments?.getString("playlistTitle") ?: "Playlist Tracks"
             PlayListTracksScreen(
                 playlistTitle = playlistTitle,
                 startAudioPlayback = startAudioPlayback
@@ -53,21 +46,23 @@ fun PlaylistsNavHost(
     }
 }
 
-
 @Composable
-private fun PlayListsScreen(navController: NavHostController) {
-    val myPlaylistsViewModel = hiltViewModel<MyPlaylistsViewModel>()
+private fun PlayListsScreen(
+    navController: NavHostController
+) {
+    val viewModel = hiltViewModel<MyPlaylistsViewModel>()
+    val playlists = viewModel.playListsState.collectAsStateWithLifecycle(initialValue = emptyList()).value
+
     PlaylistsScreen(
         title = "My Playlists",
-        playlists = myPlaylistsViewModel.playListsState.collectAsStateWithLifecycle(
-            initialValue = emptyList()
-        ),
-        onClick = {
-            navController.navigate(Screen.PlaylistTracksScreen.route + "?playlistId=${it.id}&playlistTitle=${it.name}")
-
+        playlists = playlists,
+        onClick = { playlist ->
+            navController.navigate(
+                Screen.PlaylistTracksScreen.route + "?playlistId=${playlist.id}&playlistTitle=${playlist.name}"
+            )
         },
-        onRemove = {
-            myPlaylistsViewModel.removePlaylist(it)
+        onRemove = { playlist ->
+            viewModel.removePlaylist(playlist)
         }
     )
 }
@@ -77,17 +72,15 @@ private fun PlayListTracksScreen(
     playlistTitle: String,
     startAudioPlayback: (list: List<Track>, index: Int) -> Unit
 ) {
-    val playlistTracksViewModel = hiltViewModel<PlaylistTracksViewModel>()
+    val viewModel = hiltViewModel<PlaylistTracksViewModel>()
+    val tracks = viewModel.playlistTracksState.collectAsStateWithLifecycle(initialValue = emptyList()).value
+
     PlaylistTracksScreen(
         title = playlistTitle,
-        tracks = playlistTracksViewModel.playlistTracksState.collectAsStateWithLifecycle(
-            initialValue = emptyList()
-        ),
-        onClick = { playlistTrack ->
-            startAudioPlayback(
-                playlistTracksViewModel.playlistTracksState.value,
-                playlistTracksViewModel.playlistTracksState.value.indexOf(playlistTrack)
-            )
+        tracks = tracks,
+        onClick = { track ->
+            val index = tracks.indexOf(track)
+            if (index >= 0) startAudioPlayback(tracks, index)
         }
     )
 }

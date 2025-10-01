@@ -14,8 +14,10 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import com.example.musicplayer.domain.model.Track
@@ -34,25 +36,28 @@ fun AppNavHost(
     startAudioPlayback: (list: List<Track>, index: Int) -> Unit
 ) {
     val configuration = LocalConfiguration.current
-    val isTablet = configuration.screenWidthDp > 600 // Adjust threshold as needed
+    val isTablet = configuration.screenWidthDp > 600 // Adjust threshold if needed
+
+    // Use rememberUpdatedState for lambdas to avoid unnecessary recompositions
+    val playbackState by rememberUpdatedState(newValue = startAudioPlayback)
 
     val items = listOf("Music Folders", "Playlists")
-    val selectedItem = remember { mutableIntStateOf(0) }
+    val icons = listOf(Icons.Default.Home, Icons.Default.Favorite)
+    val selectedIndex = remember { mutableStateOf(0) }
 
     Scaffold(
         bottomBar = {
             if (!isTablet) {
                 BottomNavigation(
-                    backgroundColor = MaterialTheme.colorScheme.onBackground
+                    backgroundColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.primary
                 ) {
                     items.forEachIndexed { index, item ->
-                        val icons = listOf(Icons.Default.Home, Icons.Default.Favorite)
-
                         BottomNavigationItem(
                             icon = { Icon(icons[index], contentDescription = item) },
                             label = { Text(item) },
-                            selected = selectedItem.intValue == index,
-                            onClick = { selectedItem.intValue = index },
+                            selected = selectedIndex.value == index,
+                            onClick = { selectedIndex.value = index },
                             unselectedContentColor = MaterialTheme.colorScheme.primary,
                             selectedContentColor = MaterialTheme.colorScheme.secondary
                         )
@@ -63,20 +68,20 @@ fun AppNavHost(
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
             if (isTablet) {
-                // Show both pages side by side on tablets
+                // Side-by-side layout for tablets
                 Row(modifier = Modifier.fillMaxSize()) {
                     Box(modifier = Modifier.weight(1f)) {
-                        MusicFolderNavHost(startAudioPlayback)
+                        MusicFolderNavHost(playbackState)
                     }
                     Box(modifier = Modifier.weight(1f)) {
-                        PlaylistsNavHost(startAudioPlayback)
+                        PlaylistsNavHost(playbackState)
                     }
                 }
             } else {
-                // Show only one page on phones
-                when (selectedItem.intValue) {
-                    0 -> MusicFolderNavHost(startAudioPlayback)
-                    1 -> PlaylistsNavHost(startAudioPlayback)
+                // Single-page layout for phones
+                when (selectedIndex.value) {
+                    0 -> MusicFolderNavHost(playbackState)
+                    1 -> PlaylistsNavHost(playbackState)
                 }
             }
         }

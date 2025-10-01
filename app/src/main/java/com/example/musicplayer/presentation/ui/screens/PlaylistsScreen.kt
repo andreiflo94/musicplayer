@@ -1,6 +1,5 @@
 package com.example.musicplayer.presentation.ui.screens
 
-
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,21 +20,33 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.example.musicplayer.domain.model.Playlist
-
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun PlaylistsScreen(
-    title: String, playlists: State<List<Playlist>>,
+    title: String,
+    playlists: List<Playlist>,
+    onClick: (Playlist) -> Unit,
+    onRemove: (Playlist) -> Unit
+) {
+    PlaylistsScreenContent(
+        title = title,
+        playlists = playlists,
+        onClick = onClick,
+        onRemove = onRemove
+    )
+}
+
+@Composable
+private fun PlaylistsScreenContent(
+    title: String,
+    playlists: List<Playlist>,
     onClick: (Playlist) -> Unit,
     onRemove: (Playlist) -> Unit
 ) {
@@ -47,31 +58,38 @@ fun PlaylistsScreen(
         Text(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp, 10.dp, 10.dp, 10.dp)
+                .padding(10.dp)
                 .wrapContentHeight(),
             text = title,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
-        Playlists(playlists.value, onClick, onRemove)
+
+        PlaylistsList(playlists, onClick, onRemove)
     }
 }
 
 @Composable
-fun Playlists(playlists: List<Playlist>, onClick: (Playlist) -> Unit,
-              onRemove: (Playlist) -> Unit) {
+private fun PlaylistsList(
+    playlists: List<Playlist>,
+    onClick: (Playlist) -> Unit,
+    onRemove: (Playlist) -> Unit
+) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) {
-        items(playlists) { playlist ->
+        items(
+            playlists,
+            key = { it.id } // ensures only changed items recomposes
+        ) { playlist ->
             PlaylistItem(playlist, onClick, onRemove)
         }
     }
 }
 
 @Composable
-fun PlaylistItem(
+private fun PlaylistItem(
     playlist: Playlist,
     onClick: (Playlist) -> Unit,
     onRemove: (Playlist) -> Unit
@@ -92,7 +110,6 @@ fun PlaylistItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Display the album name
             Text(
                 text = playlist.name,
                 style = MaterialTheme.typography.bodyMedium,
@@ -100,7 +117,6 @@ fun PlaylistItem(
                 color = MaterialTheme.colorScheme.primary
             )
 
-            // Remove button
             IconButton(onClick = { onRemove(playlist) }) {
                 Icon(
                     imageVector = Icons.Default.Delete,

@@ -6,14 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.musicplayer.presentation.ui.components.RequiredPermission
-import com.example.musicplayer.presentation.viewmodels.MainActivityViewModel
 import com.example.musicplayer.presentation.ui.theme.MusicplayerTheme
+import com.example.musicplayer.presentation.viewmodels.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
@@ -27,6 +25,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MusicplayerTheme(dynamicColor = false) {
+                navController = rememberNavController()
                 MusicPlayerApp()
             }
         }
@@ -35,7 +34,6 @@ class MainActivity : ComponentActivity() {
     @OptIn(UnstableApi::class)
     @Composable
     fun MusicPlayerApp() {
-        navController = rememberNavController()
         RequiredPermission(
             startAudioPlayback = { trackList, index ->
                 viewModel.startAudioPlayback(trackList, index)
@@ -55,8 +53,6 @@ class MainActivity : ComponentActivity() {
             playNextTrack = {
                 viewModel.skipForward()
             },
-            audioState =
-            viewModel.audioState.collectAsState()
         )
     }
 }

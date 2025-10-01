@@ -23,16 +23,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.example.musicplayer.domain.model.Track
 import com.example.musicplayer.presentation.ui.screens.HomeScreen
-import com.example.musicplayer.presentation.viewmodels.AudioState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -47,75 +43,81 @@ fun RequiredPermission(
     playNextTrack: () -> Unit,
     playPrevious: () -> Unit,
     onProgressUpdate: (progress: Long) -> Unit,
-    audioState: State<AudioState>
 ) {
-    val permissionToRequest = if (Build.VERSION.SDK_INT >= 33) {
+    val context = LocalContext.current
+    val permission = if (Build.VERSION.SDK_INT >= 33) {
         Manifest.permission.READ_MEDIA_AUDIO
     } else {
         Manifest.permission.READ_EXTERNAL_STORAGE
     }
-    val state = rememberPermissionState(permissionToRequest)
 
-    Scaffold {
-        when {
-            state.status.isGranted ->
-                HomeScreen(audioState = audioState,
-                    audioPlayer = {
-                        AppPlayerBar(
-                            audioState.value,
-                            playPauseClick = playPauseClick,
-                            stopPlayingClick = stopPlayingClick,
-                            onProgressUpdate = onProgressUpdate,
-                            playPreviousTrack = playPrevious,
-                            playNextTrack = playNextTrack,
-                        )
-                    },
-                    content = {
-                        AppNavHost(
-                            startAudioPlayback = { list, index ->
-                                startAudioPlayback(list, index)
-                            }
-                        )
-                    })
+    val permissionState = rememberPermissionState(permission)
 
-            else -> {
-                LaunchedEffect(Unit) {
-                    state.launchPermissionRequest()
+    // Launch request only once when permission is not granted
+    LaunchedEffect(permissionState.status) {
+        if (!permissionState.status.isGranted) {
+            permissionState.launchPermissionRequest()
+        }
+    }
+
+    Scaffold { padding ->
+        if (permissionState.status.isGranted) {
+            HomeScreen(
+                audioPlayer = {
+                    AppPlayerBar(
+                        playPauseClick = playPauseClick,
+                        stopPlayingClick = stopPlayingClick,
+                        onProgressUpdate = onProgressUpdate,
+                        playPreviousTrack = playPrevious,
+                        playNextTrack = playNextTrack,
+                    )
+                },
+                content = {
+                    AppNavHost(
+                        startAudioPlayback = startAudioPlayback
+                    )
                 }
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(padding)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(Modifier.padding(vertical = 120.dp, horizontal = 16.dp)) {
-                        Icon(
-                            Icons.Rounded.Email,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Read internal storage permission required",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text("This is required in order for the app to scan the media files")
+                    Icon(
+                        Icons.Rounded.Email,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Read internal storage permission required",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text("This is required to scan your media files")
+                }
+
+                Button(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                        context.startActivity(intent)
                     }
-                    val context = LocalContext.current
-                    Button(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        onClick = {
-                            val intent =
-                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                    data = Uri.fromParts("package", context.packageName, null)
-                                }
-                            context.startActivity(intent)
-                        }) {
-                        Text("Go to settings")
-                    }
+                ) {
+                    Text("Go to settings")
                 }
             }
         }

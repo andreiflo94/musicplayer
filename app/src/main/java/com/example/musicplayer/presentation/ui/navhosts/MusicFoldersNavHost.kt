@@ -1,7 +1,7 @@
 package com.example.musicplayer.presentation.ui.navhosts
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
@@ -16,67 +16,68 @@ import com.example.musicplayer.presentation.ui.screens.TracksScreen
 import com.example.musicplayer.presentation.viewmodels.MusicFoldersViewModel
 import com.example.musicplayer.presentation.viewmodels.PlaylistBottomSheetVm
 import com.example.musicplayer.presentation.viewmodels.TracksViewModel
-
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun MusicFolderNavHost(
-    startAudioPlayback: (list: List<Track>, index: Int) -> Unit
+    startAudioPlayback: (list: List<Track>, index: Int) -> Unit,
 ) {
     val navController = rememberNavController()
+
     NavHost(
         navController = navController,
         startDestination = Screen.MusicFoldersScreen.route,
     ) {
         composable(
-            route = Screen.MusicFoldersScreen.route + "?path={path}",
-            arguments = listOf(navArgument(name = "path") {
-                type = NavType.StringType
-                defaultValue = ""
-            })
-        ) { path ->
-            val pageTitle = path.arguments?.getString("path")
-                ?.split("/")?.lastOrNull()
-                ?.takeIf { it.isNotBlank() } ?: "Music Folders"
+            route = Screen.MusicFoldersScreen.route
+        ) {
+            val musicViewModel: MusicFoldersViewModel = hiltViewModel()
+            val musicFolders by musicViewModel.musicFoldersState.collectAsStateWithLifecycle(
+                initialValue = emptyList()
+            )
 
-            val musicViewModel = hiltViewModel<MusicFoldersViewModel>()
             MusicFoldersScreen(
-                title = pageTitle,
-                musicFolders = musicViewModel.musicFoldersState.collectAsState(
-                    initial = emptyList()
-                )
-            ) { musicFolder ->
-                navController.navigate(Screen.TracksScreen.route + "?path=${musicFolder.path}")
-            }
+                title = "Music Folders",
+                musicFolders = musicFolders,
+                onClick = { folder ->
+                    val encodedPath =
+                        URLEncoder.encode(folder.path, StandardCharsets.UTF_8.toString())
+                    navController.navigate("${Screen.TracksScreen.route}/$encodedPath")
+                }
+            )
         }
-        composable(
-            route = Screen.TracksScreen.route + "?path={path}",
-            arguments = listOf(navArgument(name = "path") {
-                type = NavType.StringType
-                defaultValue = ""
-            })
-        ) { path ->
-            val pageTitle = path.arguments?.getString("path")
-                ?.split("/")?.lastOrNull()
-                ?.takeIf { it.isNotBlank() } ?: "Music Folders"
 
-            val tracksViewModel = hiltViewModel<TracksViewModel>()
-            val playlistBottomSheetVm = hiltViewModel<PlaylistBottomSheetVm>()
+        composable(
+            route = Screen.TracksScreen.route + "/{path}",
+            arguments = listOf(
+                navArgument("path") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val tracksViewModel: TracksViewModel = hiltViewModel()
+            val playlistBottomSheetVm: PlaylistBottomSheetVm = hiltViewModel()
+
+            val tracks by tracksViewModel.tracksState.collectAsStateWithLifecycle()
+            val playlists by playlistBottomSheetVm.playListsState.collectAsStateWithLifecycle(
+                initialValue = emptyList()
+            )
+
+            val path = backStackEntry.arguments?.getString("path") ?: ""
+            val decodedPath = java.net.URLDecoder.decode(path, StandardCharsets.UTF_8.toString())
+            val pageTitle =
+                decodedPath.split("/").lastOrNull().takeIf { it!!.isNotBlank() } ?: "Music Folders"
+
             TracksScreen(
                 title = pageTitle,
-                tracks = tracksViewModel.tracksState.collectAsStateWithLifecycle(),
-                playlists = playlistBottomSheetVm.playListsState.collectAsStateWithLifecycle(
-                    emptyList()
-                ),
-                addToNewPlaylist = { playlistName, track ->
-                    playlistBottomSheetVm.addToNewPlaylist(playlistName, track)
-                },
-                addToPlaylist = { playListId, track ->
-                    playlistBottomSheetVm.addToPlaylist(playListId, track)
-                },
-            ) { musicFolder ->
-                startAudioPlayback(tracksViewModel.tracksState.value, tracksViewModel.tracksState.value.indexOf(musicFolder))
-                return@TracksScreen
-            }
+                tracks = tracks,
+                playlists = playlists,
+                addToNewPlaylist = playlistBottomSheetVm::addToNewPlaylist,
+                addToPlaylist = playlistBottomSheetVm::addToPlaylist,
+                onClick = { track ->
+                    val index = tracks.indexOf(track)
+                    if (index != -1) startAudioPlayback(tracks, index)
+                }
+            )
         }
     }
 }
