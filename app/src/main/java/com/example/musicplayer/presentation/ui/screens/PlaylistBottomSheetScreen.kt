@@ -117,12 +117,12 @@ private fun NewPlaylistSection(
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
         modifier = Modifier.fillMaxWidth(),
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedTextColor = Color.Black,
+            focusedTextColor = MaterialTheme.colorScheme.background,
             unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
             cursorColor = MaterialTheme.colorScheme.background,
             focusedBorderColor = MaterialTheme.colorScheme.background,
             unfocusedBorderColor = MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
-            focusedLabelColor = MaterialTheme.colorScheme.onBackground,
+            focusedLabelColor = MaterialTheme.colorScheme.background,
             unfocusedLabelColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
         ),
     )
