@@ -93,7 +93,7 @@ fun TrackItem(
             .shadow(5.dp, MaterialTheme.shapes.small)
             .clickable { onClick(track) },
         shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.background
+        color = MaterialTheme.colorScheme.onBackground
     ) {
         Row(
             modifier = Modifier
