@@ -62,28 +62,6 @@ Glide Compose for album art
 
 Accompanist Permissions
 
-## 📸 Screenshots
-<img src="https://github.com/user-attachments/assets/a6765775-ebd1-4c10-98ed-9ce8f9c2df5c" width="250"/>
-<img src="https://github.com/user-attachments/assets/aa420b72-fabb-4039-a7b3-f3390d413a6a" width="250"/>
-<img src="https://github.com/user-attachments/assets/a729826b-d5aa-48b5-99bf-282c1af48346" width="250"/>
-<img src="https://github.com/user-attachments/assets/80a392a5-b27c-4f8e-b64e-74a801a8b92a" width="250"/>
-<img src="https://github.com/user-attachments/assets/4000f098-75d2-4aff-a4de-413b979bd1f3" width="250"/>
-<img src="https://github.com/user-attachments/assets/61bf1792-8c9a-4a39-8305-8debdfcfac6f" width="250"/>
-
-## 🚀 Getting Started
-
-Clone the repo:
-
-git clone https://github.com/yourusername/musicplayer.git
-cd musicplayer
-
-
-Open in Android Studio (latest version).
-
-Sync Gradle & build the project.
-
-Run the app on a device/emulator with Android 7.0+ (API 24+).
-
 ## 🧪 Testing
 
 Includes unit tests with Mockito for MediaControllerManager.
@@ -92,21 +70,14 @@ Basic tests cover playback state, track info, and interaction with the controlle
 
 UI tests can be extended using Compose UI Test.
 
-## 🗺 Roadmap
+## 📸 Screenshots
+<img src="https://github.com/user-attachments/assets/a6765775-ebd1-4c10-98ed-9ce8f9c2df5c" width="250"/>
+<img src="https://github.com/user-attachments/assets/aa420b72-fabb-4039-a7b3-f3390d413a6a" width="250"/>
+<img src="https://github.com/user-attachments/assets/a729826b-d5aa-48b5-99bf-282c1af48346" width="250"/>
+<img src="https://github.com/user-attachments/assets/80a392a5-b27c-4f8e-b64e-74a801a8b92a" width="250"/>
+<img src="https://github.com/user-attachments/assets/4000f098-75d2-4aff-a4de-413b979bd1f3" width="250"/>
+<img src="https://github.com/user-attachments/assets/61bf1792-8c9a-4a39-8305-8debdfcfac6f" width="250"/>
 
-Planned improvements for future versions:
-
-🔄 Edit playlists (add/remove tracks).
-
-🎚 Equalizer integration.
-
-🌐 Streaming support (HTTP audio).
-
-📝 Lyrics sync & display.
-
-🎛 Advanced shuffle/repeat modes.
-
-🤝 Contributing
 
 Contributions are welcome! Feel free to open issues or submit pull requests.
 
