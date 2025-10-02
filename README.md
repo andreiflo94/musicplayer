@@ -4,6 +4,8 @@ A modern, lightweight music player app for Android built with Jetpack Compose, p
 
 Designed with Clean Architecture (data/domain/presentation) and Material3 UI, the app lets you easily browse your local music folders, create and manage playlists, and enjoy smooth playback with persistent notifications and lockscreen integration.
 
+➡️ [Download MusicPlayer APK](https://github.com/andreiflo94/musicplayer/raw/master/builds/app-debug.apk)
+
 ## ✨ Features
 
 📂 Browse by Folders – Automatically scans your storage and lists available music folders.
