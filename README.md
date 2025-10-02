@@ -77,10 +77,3 @@ UI tests can be extended using Compose UI Test.
 <img src="https://github.com/user-attachments/assets/80a392a5-b27c-4f8e-b64e-74a801a8b92a" width="250"/>
 <img src="https://github.com/user-attachments/assets/4000f098-75d2-4aff-a4de-413b979bd1f3" width="250"/>
 <img src="https://github.com/user-attachments/assets/61bf1792-8c9a-4a39-8305-8debdfcfac6f" width="250"/>
-
-
-Contributions are welcome! Feel free to open issues or submit pull requests.
-
-📜 License
-
-MIT License – feel free to use and modify.
