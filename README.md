@@ -1,10 +1,10 @@
-🎵 MusicPlayer
+# 🎵 MusicPlayer
 
 A modern, lightweight music player app for Android built with Jetpack Compose, powered by Media3 API for audio playback and SQLDelight for playlist management.
 
 Designed with Clean Architecture (data/domain/presentation) and Material3 UI, the app lets you easily browse your local music folders, create and manage playlists, and enjoy smooth playback with persistent notifications and lockscreen integration.
 
-✨ Features
+## ✨ Features
 
 📂 Browse by Folders – Automatically scans your storage and lists available music folders.
 
@@ -24,7 +24,7 @@ Designed with Clean Architecture (data/domain/presentation) and Material3 UI, th
 
 🎨 Modern UI – Built entirely with Jetpack Compose and Material3.
 
-🏗 Architecture
+## 🏗 Architecture
 
 The project follows a Clean Architecture approach with three main layers:
 
@@ -46,7 +46,7 @@ Built with Jetpack Compose (Material3).
 
 Includes bottom navigation, folder browsing, playlist screens, and now-playing UI.
 
-⚙️ Tech Stack
+## ⚙️ Tech Stack
 
 Kotlin + Coroutines
 
@@ -62,18 +62,15 @@ Glide Compose for album art
 
 Accompanist Permissions
 
-📸 Screenshots
-![Screenshot_20251002_183906_musicplayer](https://github.com/user-attachments/assets/a6765775-ebd1-4c10-98ed-9ce8f9c2df5c)
-![Screenshot_20251002_183849_musicplayer](https://github.com/user-attachments/assets/aa420b72-fabb-4039-a7b3-f3390d413a6a)
-![Screenshot_20251002_183845_musicplayer](https://github.com/user-attachments/assets/a729826b-d5aa-48b5-99bf-282c1af48346)
-![Screenshot_20251002_183840_musicplayer](https://github.com/user-attachments/assets/80a392a5-b27c-4f8e-b64e-74a801a8b92a)
-![Screenshot_20251002_183833_musicplayer](https://github.com/user-attachments/assets/4000f098-75d2-4aff-a4de-413b979bd1f3)
-![Screenshot_20251002_183830_musicplayer](https://github.com/user-attachments/assets/61bf1792-8c9a-4a39-8305-8debdfcfac6f)
+## 📸 Screenshots
+<img src="https://github.com/user-attachments/assets/a6765775-ebd1-4c10-98ed-9ce8f9c2df5c" width="250"/>
+<img src="https://github.com/user-attachments/assets/aa420b72-fabb-4039-a7b3-f3390d413a6a" width="250"/>
+<img src="https://github.com/user-attachments/assets/a729826b-d5aa-48b5-99bf-282c1af48346" width="250"/>
+<img src="https://github.com/user-attachments/assets/80a392a5-b27c-4f8e-b64e-74a801a8b92a" width="250"/>
+<img src="https://github.com/user-attachments/assets/4000f098-75d2-4aff-a4de-413b979bd1f3" width="250"/>
+<img src="https://github.com/user-attachments/assets/61bf1792-8c9a-4a39-8305-8debdfcfac6f" width="250"/>
 
-
-(Replace with your actual screenshots in the screenshots/ folder of the repo)
-
-🚀 Getting Started
+## 🚀 Getting Started
 
 Clone the repo:
 
@@ -87,7 +84,7 @@ Sync Gradle & build the project.
 
 Run the app on a device/emulator with Android 7.0+ (API 24+).
 
-🧪 Testing
+## 🧪 Testing
 
 Includes unit tests with Mockito for MediaControllerManager.
 
@@ -95,7 +92,7 @@ Basic tests cover playback state, track info, and interaction with the controlle
 
 UI tests can be extended using Compose UI Test.
 
-🗺 Roadmap
+## 🗺 Roadmap
 
 Planned improvements for future versions:
 
