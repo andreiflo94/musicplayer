@@ -28,22 +28,16 @@ Designed with Clean Architecture (data/domain/presentation) and Material3 UI, th
 
 The project follows a Clean Architecture approach with three main layers:
 
-Data Layer
-
+### Data Layer
 Responsible for accessing the MediaStore (scanning music files and folders).
-
 Provides repositories to manage playlists using SQLDelight.
-
-Domain Layer
-
-Defines core interfaces and models (Track, MediaControllerManager).
-
 Handles playback logic through MediaControllerManagerImpl.
 
-Presentation Layer
+### Domain Layer
+Defines core interfaces and models (Track, MediaControllerManager).
 
+### Presentation Layer
 Built with Jetpack Compose (Material3).
-
 Includes bottom navigation, folder browsing, playlist screens, and now-playing UI.
 
 ## ⚙️ Tech Stack
