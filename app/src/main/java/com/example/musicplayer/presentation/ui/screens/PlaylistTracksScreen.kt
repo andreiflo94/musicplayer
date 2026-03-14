@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -25,7 +24,11 @@ fun PlaylistTracksScreen(
     tracks: List<Track>,
     onClick: (Track) -> Unit
 ) {
-    PlaylistTracksScreenContent(title, tracks, onClick)
+    PlaylistTracksScreenContent(
+        title = title,
+        tracks = tracks,
+        onClick = onClick
+    )
 }
 
 @Composable
@@ -34,27 +37,33 @@ private fun PlaylistTracksScreenContent(
     tracks: List<Track>,
     onClick: (Track) -> Unit
 ) {
+
     Column(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
     ) {
+
         ScreenTitle(title)
-        PlaylistTracksList(tracks, onClick)
+
+        PlaylistTracksList(
+            tracks = tracks,
+            onClick = onClick
+        )
     }
 }
 
 @Composable
 private fun ScreenTitle(title: String) {
+
     Text(
+        text = title,
+        style = MaterialTheme.typography.headlineSmall,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp, 16.dp, 10.dp, 10.dp)
-            .wrapContentHeight(),
-        text = title,
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onBackground
+            .padding(horizontal = 20.dp, vertical = 16.dp)
     )
 }
 
@@ -63,12 +72,24 @@ private fun PlaylistTracksList(
     tracks: List<Track>,
     onClick: (Track) -> Unit
 ) {
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 150.dp)
+        contentPadding = PaddingValues(
+            top = 8.dp,
+            bottom = 100.dp
+        )
     ) {
-        items(tracks, key = { it.name }) { track ->
-            PlaylistTrackItem(track, onClick)
+
+        items(
+            items = tracks,
+            key = { it.name }
+        ) { track ->
+
+            PlaylistTrackItem(
+                track = track,
+                onClick = onClick
+            )
         }
     }
 }
@@ -79,33 +100,34 @@ private fun PlaylistTrackItem(
     track: Track,
     onClick: (Track) -> Unit
 ) {
+
     Surface(
         modifier = Modifier
-            .padding(horizontal = 10.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .fillMaxWidth()
-            .shadow(5.dp, MaterialTheme.shapes.small)
             .clickable { onClick(track) },
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.onBackground
+
+        shape = MaterialTheme.shapes.large,
+        tonalElevation = 3.dp,
+        color = MaterialTheme.colorScheme.surface
     ) {
-        Column(
+
+        Row(
             modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+                .fillMaxWidth(),
+
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AlbumImage(track.albumIconUrl)
-                Spacer(modifier = Modifier.weight(1f))
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            AlbumImage(track.albumIconUrl)
 
-            TrackName(track.name)
+            Spacer(modifier = Modifier.width(16.dp))
+
+            TrackName(
+                name = track.name,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
@@ -113,22 +135,27 @@ private fun PlaylistTrackItem(
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun AlbumImage(albumIconUrl: String?) {
+
     GlideImage(
         model = albumIconUrl,
         contentDescription = "album image",
         modifier = Modifier
-            .size(40.dp)
+            .size(56.dp)
             .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.secondary),
     )
 }
 
 @Composable
-private fun TrackName(name: String) {
+private fun TrackName(
+    name: String,
+    modifier: Modifier = Modifier
+) {
+
     Text(
         text = name,
-        style = MaterialTheme.typography.bodyMedium,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary
+        modifier = modifier,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Medium,
+        color = MaterialTheme.colorScheme.onSurface
     )
 }

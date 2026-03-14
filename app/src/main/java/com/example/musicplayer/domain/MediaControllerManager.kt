@@ -1,18 +1,25 @@
 package com.example.musicplayer.domain
 
-import androidx.media3.common.MediaItem
 import com.example.musicplayer.domain.model.Track
 import kotlinx.coroutines.flow.StateFlow
 
 sealed class MediaControllerEvent {
+
     object Idle : MediaControllerEvent()
-    data class IsPlayingChanged(val isPlaying: Boolean) : MediaControllerEvent()
-    data class MediaItemTransition(val mediaItem: MediaItem?, val reason: Int) :
-        MediaControllerEvent()
 
-    data class PlaybackStateChanged(val playbackState: Int) : MediaControllerEvent()
+    data class IsPlayingChanged(
+        val isPlaying: Boolean
+    ) : MediaControllerEvent()
+
+    data class TrackTransition(
+        val track: Track?,
+        val reason: Int
+    ) : MediaControllerEvent()
+
+    data class PlaybackStateChanged(
+        val playbackState: Int
+    ) : MediaControllerEvent()
 }
-
 
 interface MediaControllerManager {
 

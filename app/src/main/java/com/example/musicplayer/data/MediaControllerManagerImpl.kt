@@ -25,7 +25,7 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
     private val _mediaControllerEvents =
         MutableStateFlow<MediaControllerEvent>(MediaControllerEvent.Idle)
     private lateinit var controllerFuture: ListenableFuture<MediaController>
-    private lateinit var trackList: List<Track>
+    private var trackList: List<Track> = emptyList()
     private var currentTrackIndex: Int = 0
     private val controller: MediaController?
         get() = if (controllerFuture.isDone) controllerFuture.get() else null
@@ -124,7 +124,8 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
 
     override fun onProgressUpdate(progress: Long) {
         Log.d("MediaControllerManager", "onProgressUpdate: $progress")
-        val seekTo = ((controller?.duration!! * progress) / 100f).toLong()
+        val duration = controller?.duration ?: return
+        val seekTo = ((duration * progress) / 100f).toLong()
         controller?.seekTo(seekTo)
     }
 
@@ -142,10 +143,12 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            super.onMediaItemTransition(mediaItem, reason)
-            Log.d("MediaControllerManager", "onMediaItemTransition: $mediaItem")
+
+            val index = controller?.currentMediaItemIndex ?: 0
+            val track = trackList.getOrNull(index)
+
             _mediaControllerEvents.value =
-                MediaControllerEvent.MediaItemTransition(mediaItem, reason)
+                MediaControllerEvent.TrackTransition(track, reason)
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {

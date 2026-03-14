@@ -10,8 +10,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
@@ -27,6 +27,7 @@ fun TracksScreen(
     addToPlaylist: (Long, Track) -> Unit,
     onClick: (Track) -> Unit
 ) {
+
     var selectedTrack by remember { mutableStateOf<Track?>(null) }
 
     Column(
@@ -34,11 +35,18 @@ fun TracksScreen(
             .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
     ) {
+
         ScreenTitle(title)
-        TrackList(tracks, showAddToPlaylist = { selectedTrack = it }, onClick)
+
+        TrackList(
+            tracks = tracks,
+            showAddToPlaylist = { selectedTrack = it },
+            onClick = onClick
+        )
     }
 
     selectedTrack?.let { track ->
+
         PlaylistBottomSheetScreen(
             track = track,
             playlists = playlists,
@@ -51,13 +59,14 @@ fun TracksScreen(
 
 @Composable
 private fun ScreenTitle(title: String) {
+
     Text(
+        text = title,
+        style = MaterialTheme.typography.headlineSmall,
+        color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 16.dp),
-        text = title,
-        style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.onBackground
+            .padding(horizontal = 20.dp, vertical = 16.dp)
     )
 }
 
@@ -67,12 +76,25 @@ private fun TrackList(
     showAddToPlaylist: (Track) -> Unit,
     onClick: (Track) -> Unit
 ) {
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 150.dp)
+        contentPadding = PaddingValues(
+            top = 8.dp,
+            bottom = 100.dp
+        )
     ) {
-        items(tracks, key = { it.trackName }) {
-            TrackItem(it, showAddToPlaylist, onClick)
+
+        items(
+            items = tracks,
+            key = { it.trackName }
+        ) { track ->
+
+            TrackItem(
+                track = track,
+                showAddToPlaylist = showAddToPlaylist,
+                onClick = onClick
+            )
         }
     }
 }
@@ -84,26 +106,38 @@ private fun TrackItem(
     showAddToPlaylist: (Track) -> Unit,
     onClick: (Track) -> Unit
 ) {
+
     Surface(
         modifier = Modifier
-            .padding(horizontal = 10.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .fillMaxWidth()
-            .shadow(5.dp, MaterialTheme.shapes.small)
             .clickable { onClick(track) },
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.onBackground
+
+        shape = MaterialTheme.shapes.large,
+        tonalElevation = 3.dp,
+        color = MaterialTheme.colorScheme.surface
     ) {
+
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 14.dp)
                 .fillMaxWidth(),
+
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             AlbumImage(track.albumIconUrl)
-            Spacer(modifier = Modifier.width(8.dp))
-            TrackInfo(track)
-            Spacer(modifier = Modifier.weight(1f))
-            AddToPlaylistButton { showAddToPlaylist(track) }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            TrackInfo(
+                track = track,
+                modifier = Modifier.weight(1f)
+            )
+
+            AddToPlaylistButton {
+                showAddToPlaylist(track)
+            }
         }
     }
 }
@@ -111,39 +145,51 @@ private fun TrackItem(
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun AlbumImage(albumIconUrl: String?) {
+
     GlideImage(
         model = albumIconUrl,
         contentDescription = "album image",
         modifier = Modifier
-            .size(40.dp)
+            .size(56.dp)
             .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.secondary)
     )
 }
 
 @Composable
-private fun TrackInfo(track: Track) {
-    Column{
-        Text(
-            text = track.artistName,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(4.dp))
+private fun TrackInfo(
+    track: Track,
+    modifier: Modifier = Modifier
+) {
+
+    Column(modifier = modifier) {
+
         Text(
             text = track.trackName,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = track.artistName,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
 @Composable
 private fun AddToPlaylistButton(onClick: () -> Unit) {
+
     IconButton(onClick = onClick) {
+
         Icon(
-            painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_playlist_add),
-            contentDescription = "AddToPlaylist",
+            painter = painterResource(
+                id = androidx.media3.session.R.drawable.media3_icon_playlist_add
+            ),
+            contentDescription = "Add to playlist",
             tint = MaterialTheme.colorScheme.primary
         )
     }

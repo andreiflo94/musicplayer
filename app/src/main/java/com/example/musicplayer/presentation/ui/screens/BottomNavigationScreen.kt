@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
 import com.example.musicplayer.presentation.ui.navhosts.MusicFolderNavHost
 import com.example.musicplayer.presentation.ui.navhosts.PlaylistsNavHost
 
@@ -44,27 +45,32 @@ fun BottomNavigationScreen() {
 // ---- Bottom Navigation Bar ----
 @Composable
 private fun BottomNavBar(selectedIndex: MutableIntState) {
-    val items = listOf("Music Folders", "Playlists")
+
+    val items = listOf("Folders", "Playlists")
     val icons = listOf(Icons.Default.Home, Icons.Default.Favorite)
 
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.onBackground,
-        contentColor = MaterialTheme.colorScheme.primary
+        tonalElevation = 6.dp
     ) {
-        items.forEachIndexed { index, item ->
+
+        items.forEachIndexed { index, label ->
+
             NavigationBarItem(
-                icon = { Icon(icons[index], contentDescription = item) },
-                label = { Text(item) },
                 selected = selectedIndex.intValue == index,
                 onClick = { selectedIndex.intValue = index },
-                alwaysShowLabel = true,
-                colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = MaterialTheme.colorScheme.primary,
-                    selectedIconColor = MaterialTheme.colorScheme.onBackground,
-                    unselectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedTextColor = MaterialTheme.colorScheme.primary
-                )
+
+                icon = {
+                    Icon(
+                        imageVector = icons[index],
+                        contentDescription = label
+                    )
+                },
+
+                label = {
+                    Text(label)
+                },
+
+                alwaysShowLabel = false
             )
         }
     }

@@ -16,7 +16,7 @@ class MusicFoldersRepositoryImpl @Inject constructor(private val contentResolver
     override suspend fun getMusicFolders() = withContext(Dispatchers.IO) {
         val musicFolders = MusicUtils.getMusicFolders(contentResolver)
         val processedList = ArrayList<MusicFolder>()
-        musicFolders.map { folder ->
+        musicFolders.forEach { folder ->
             processedList.add(
                 MusicFolder(
                     folder.name,

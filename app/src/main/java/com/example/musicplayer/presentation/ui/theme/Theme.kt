@@ -10,26 +10,40 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Green80,
-    secondary = GreenGrey80,
-    tertiary = Amber80,
-    background = CanvasGrey,
-)
-
 private val LightColorScheme = lightColorScheme(
-    primary = Green40,
-    secondary = GreenGrey40,
-    tertiary = Amber40,
+    primary = Primary,
+    secondary = Secondary,
+    tertiary = Accent,
+
     background = Canvas,
+    surface = Color.White,
+
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onSurface = Color.Black,
+    onBackground = Color.Black
 )
 
+private val DarkColorScheme = darkColorScheme(
+    primary = Primary,
+    secondary = Secondary,
+    tertiary = Accent,
+
+    background = CanvasDark,
+    surface = Color(0xFF1E1E1E),
+
+    onPrimary = Color.Black,
+    onSecondary = Color.Black,
+    onSurface = Color.White,
+    onBackground = Color.White
+)
 @Composable
 fun MusicplayerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

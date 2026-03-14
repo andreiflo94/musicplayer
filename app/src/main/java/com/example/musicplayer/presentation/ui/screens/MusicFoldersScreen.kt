@@ -26,7 +26,6 @@ fun MusicFoldersScreen(
 ) {
     Column(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
     ) {
         ScreenTitle(title)
@@ -36,12 +35,12 @@ fun MusicFoldersScreen(
 
 @Composable
 private fun ScreenTitle(title: String) {
+
     Text(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 16.dp),
         text = title,
-        style = MaterialTheme.typography.titleLarge,
+        style = MaterialTheme.typography.headlineSmall,
+        modifier = Modifier
+            .padding(horizontal = 20.dp, vertical = 16.dp),
         color = MaterialTheme.colorScheme.onBackground
     )
 }
@@ -53,7 +52,10 @@ private fun MusicList(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 150.dp)
+        contentPadding = PaddingValues(
+            top = 8.dp,
+            bottom = 100.dp
+        )
     ) {
         items(
             items = musicFolders,
@@ -70,34 +72,31 @@ private fun MusicFolderItem(
     folder: MusicFolder,
     onClick: (MusicFolder) -> Unit
 ) {
+
     Surface(
+        onClick = { onClick(folder) },
+        shape = MaterialTheme.shapes.large,
+        tonalElevation = 3.dp,
         modifier = Modifier
-            .padding(horizontal = 10.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .fillMaxWidth()
-            .shadow(5.dp, MaterialTheme.shapes.small)
-            .clickable { onClick(folder) },
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.onBackground
     ) {
-        Column(
+
+        Row(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AlbumImage(folder.albumIconUrl)
-                Spacer(modifier = Modifier.weight(1f))
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            AlbumImage(folder.albumIconUrl)
+
+            Spacer(modifier = Modifier.width(16.dp))
 
             Text(
                 text = folder.name,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -106,12 +105,12 @@ private fun MusicFolderItem(
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun AlbumImage(albumIconUrl: String?) {
+
     GlideImage(
         model = albumIconUrl,
         contentDescription = "album image",
         modifier = Modifier
-            .size(40.dp)
+            .size(56.dp)
             .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.primary)
     )
 }

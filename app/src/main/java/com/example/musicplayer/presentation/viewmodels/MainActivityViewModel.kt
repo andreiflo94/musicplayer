@@ -62,7 +62,7 @@ class MainActivityViewModel @Inject constructor(
                             stopProgressUpdate()
                         }
                     }
-                    is MediaControllerEvent.MediaItemTransition -> {
+                    is MediaControllerEvent.TrackTransition -> {
                         mediaControllerManager.setCurrentTrackPlayingIndex()
                         updateAudioStateStartOrResume()
                     }

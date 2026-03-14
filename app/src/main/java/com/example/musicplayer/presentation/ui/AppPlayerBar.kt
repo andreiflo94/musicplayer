@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -40,19 +39,26 @@ enum class PlayerExpansionState { COLLAPSED, EXPANDED }
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun AppPlayerBar() {
+
     var expansionState by remember { mutableStateOf(PlayerExpansionState.COLLAPSED) }
     val isExpanded = expansionState == PlayerExpansionState.EXPANDED
 
     val playerHeight by animateFloatAsState(
-        targetValue = if (isExpanded) 1f else 0.07f, label = "playerHeight"
+        targetValue = if (isExpanded) 1f else 0.08f,
+        label = "playerHeight"
     )
-    val imageSize by animateDpAsState(targetValue = if (isExpanded) 150.dp else 40.dp)
-    val cornerRadius by animateDpAsState(targetValue = if (isExpanded) 8.dp else 20.dp)
+
+    val imageSize by animateDpAsState(
+        targetValue = if (isExpanded) 220.dp else 48.dp
+    )
+
+    val cornerRadius by animateDpAsState(
+        targetValue = if (isExpanded) 12.dp else 12.dp
+    )
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight()
             .pointerInput(Unit) {
                 detectVerticalDragGestures { change, dragAmount ->
                     when {
@@ -63,17 +69,19 @@ fun AppPlayerBar() {
                 }
             }
     ) {
-        Box(
+
+        Surface(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .fillMaxHeight(playerHeight)
-                .shadow(4.dp)
-                .background(MaterialTheme.colorScheme.onBackground)
                 .clickable(enabled = !isExpanded) {
                     expansionState = PlayerExpansionState.EXPANDED
-                }
+                },
+            tonalElevation = 6.dp,
+            color = MaterialTheme.colorScheme.surface
         ) {
+
             if (isExpanded) {
                 ExpandedPlayerContent(imageSize, cornerRadius)
             } else {
@@ -87,29 +95,40 @@ fun AppPlayerBar() {
 @OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class)
 @Composable
 private fun MiniPlayerContent(imageSize: Dp, cornerRadius: Dp) {
+
     val viewModel: MainActivityViewModel =
-        hiltViewModel<MainActivityViewModel>(LocalContext.current as ComponentActivity)
+        hiltViewModel(LocalContext.current as ComponentActivity)
+
     val trackState = viewModel.trackState.collectAsState().value
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+
         GlideImage(
             model = trackState.trackArtUrl,
             contentDescription = "Album Art",
             contentScale = ContentScale.Crop,
-            modifier = Modifier.size(imageSize).clip(RoundedCornerShape(cornerRadius))
+            modifier = Modifier
+                .size(imageSize)
+                .clip(RoundedCornerShape(cornerRadius))
         )
+
+        Spacer(modifier = Modifier.width(16.dp))
 
         Text(
             text = trackState.trackName,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f).padding(horizontal = 12.dp).basicMarquee()
+            modifier = Modifier
+                .weight(1f)
+                .basicMarquee()
         )
 
         MiniPlayerControls(
@@ -128,8 +147,11 @@ private fun MiniPlayerControls(
     onPlayPause: () -> Unit,
     onNext: () -> Unit
 ) {
+
     Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onPlayPause, modifier = Modifier.size(40.dp)) {
+
+        IconButton(onClick = onPlayPause) {
+
             Icon(
                 painter = painterResource(
                     id = if (isPlaying) R.drawable.ic_not_pause else R.drawable.ic_not_play
@@ -140,9 +162,13 @@ private fun MiniPlayerControls(
         }
 
         if (hasNext) {
-            IconButton(onClick = onNext, modifier = Modifier.size(40.dp)) {
+
+            IconButton(onClick = onNext) {
+
                 Icon(
-                    painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_next),
+                    painter = painterResource(
+                        id = androidx.media3.session.R.drawable.media3_icon_next
+                    ),
                     contentDescription = "Next",
                     tint = MaterialTheme.colorScheme.primary
                 )
@@ -187,17 +213,27 @@ private fun ExpandedPlayerContent(imageSize: Dp, cornerRadius: Dp) {
 
 @Composable
 private fun ExpandedPlayerHeader(onStop: () -> Unit) {
+
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("Now Playing", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+
+        Text(
+            text = "Now Playing",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
         IconButton(onClick = onStop) {
+
             Icon(
                 painter = painterResource(id = R.drawable.ic_not_close),
                 contentDescription = "Stop",
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -206,21 +242,25 @@ private fun ExpandedPlayerHeader(onStop: () -> Unit) {
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun ExpandedAlbumArt(url: String?, imageSize: Dp, cornerRadius: Dp) {
+
     GlideImage(
         model = url,
         contentDescription = "Album Art",
-        contentScale = ContentScale.FillWidth,
-        modifier = Modifier.size(imageSize).clip(RoundedCornerShape(cornerRadius)).shadow(8.dp)
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .size(imageSize)
+            .clip(RoundedCornerShape(cornerRadius))
     )
 }
 
 @Composable
 private fun ExpandedTrackInfo(trackName: String) {
+
     Text(
         text = trackName,
         style = MaterialTheme.typography.headlineSmall,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface,
         textAlign = TextAlign.Center,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis
@@ -263,44 +303,60 @@ private fun ExpandedPlayerControls(
     onPlayPause: () -> Unit,
     onNext: () -> Unit
 ) {
+
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onPrevious, modifier = Modifier.size(48.dp)) {
+
+        IconButton(onClick = onPrevious) {
+
             Icon(
-                painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_next),
+                painter = painterResource(
+                    id = androidx.media3.session.R.drawable.media3_icon_next
+                ),
                 contentDescription = "Previous",
                 modifier = Modifier.rotate(180f),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
 
         Box(
-            modifier = Modifier.size(64.dp).clip(CircleShape)
+            modifier = Modifier
+                .size(72.dp)
+                .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
                 .clickable { onPlayPause() },
             contentAlignment = Alignment.Center
         ) {
+
             Icon(
-                painter = painterResource(id = if (isPlaying) R.drawable.ic_not_pause else R.drawable.ic_not_play),
+                painter = painterResource(
+                    id = if (isPlaying) R.drawable.ic_not_pause else R.drawable.ic_not_play
+                ),
                 contentDescription = if (isPlaying) "Pause" else "Play",
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.size(32.dp)
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(34.dp)
             )
         }
 
         IconButton(
             onClick = onNext,
-            modifier = Modifier.size(48.dp),
             enabled = hasNext
         ) {
+
             Icon(
-                painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_next),
+                painter = painterResource(
+                    id = androidx.media3.session.R.drawable.media3_icon_next
+                ),
                 contentDescription = "Next",
-                tint = if (hasNext) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                tint = if (hasNext)
+                    MaterialTheme.colorScheme.onSurface
+                else
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
             )
         }
     }

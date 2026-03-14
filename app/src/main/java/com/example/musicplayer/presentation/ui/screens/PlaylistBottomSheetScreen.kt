@@ -49,51 +49,63 @@ fun PlaylistBottomSheetScreen(
     addToPlaylist: (playlistId: Long, track: Track) -> Unit,
     onDismiss: () -> Unit
 ) {
+
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val context = LocalContext.current
+
     var newPlaylistName by remember { mutableStateOf("") }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.onBackground
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.5f)
-                .background(MaterialTheme.colorScheme.onBackground)
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            // Secțiunea pentru playlist nou
+
             NewPlaylistSection(
                 newPlaylistName = newPlaylistName,
                 onNameChange = { newPlaylistName = it },
                 onAddPlaylist = {
+
                     addToNewPlaylist(newPlaylistName, track)
+
                     Toast.makeText(
                         context,
                         "Playlist '$newPlaylistName' created!",
                         Toast.LENGTH_SHORT
                     ).show()
+
                     newPlaylistName = ""
                     onDismiss()
                 }
             )
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Playlists existente
+            Divider()
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             playlists.forEach { playlist ->
+
                 PlaylistItem(
                     playlist = playlist,
                     onClick = {
+
                         addToPlaylist(playlist.id, track)
+
                         Toast.makeText(
                             context,
                             "Track added to '${playlist.name}'",
                             Toast.LENGTH_SHORT
                         ).show()
+
                         onDismiss()
                     }
                 )
@@ -109,41 +121,44 @@ private fun NewPlaylistSection(
     onNameChange: (String) -> Unit,
     onAddPlaylist: () -> Unit
 ) {
+
+    Text(
+        text = "Create Playlist",
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurface
+    )
+
+    Spacer(modifier = Modifier.height(12.dp))
+
     OutlinedTextField(
         value = newPlaylistName,
         onValueChange = onNameChange,
-        label = { Text("Enter playlist name") },
+        label = { Text("Playlist name") },
         singleLine = true,
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-        modifier = Modifier.fillMaxWidth(),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedTextColor = MaterialTheme.colorScheme.background,
-            unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-            cursorColor = MaterialTheme.colorScheme.background,
-            focusedBorderColor = MaterialTheme.colorScheme.background,
-            unfocusedBorderColor = MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
-            focusedLabelColor = MaterialTheme.colorScheme.background,
-            unfocusedLabelColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Done
         ),
+        modifier = Modifier.fillMaxWidth()
     )
 
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(12.dp))
 
     val canAddNew = newPlaylistName.isNotBlank()
+
     Button(
         onClick = onAddPlaylist,
         modifier = Modifier.fillMaxWidth(),
-        enabled = canAddNew,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.onBackground,
-            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-        )
+        enabled = canAddNew
     ) {
-        Icon(Icons.Default.Add, contentDescription = null)
-        Spacer(modifier = Modifier.width(4.dp))
-        Text("Add Playlist")
+
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Text("Create Playlist")
     }
 }
 
@@ -152,22 +167,27 @@ private fun PlaylistItem(
     playlist: Playlist,
     onClick: () -> Unit
 ) {
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 12.dp),
+            .padding(vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+
         Icon(
             imageVector = Icons.Default.PlayArrow,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(end = 8.dp),
+            tint = MaterialTheme.colorScheme.primary
         )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
         Text(
             text = playlist.name,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
