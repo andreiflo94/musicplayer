@@ -1,22 +1,50 @@
 package com.example.musicplayer.presentation.ui
 
 import androidx.activity.ComponentActivity
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -24,9 +52,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -43,49 +71,112 @@ fun AppPlayerBar() {
     var expansionState by remember { mutableStateOf(PlayerExpansionState.COLLAPSED) }
     val isExpanded = expansionState == PlayerExpansionState.EXPANDED
 
-    val playerHeight by animateFloatAsState(
-        targetValue = if (isExpanded) 1f else 0.08f,
-        label = "playerHeight"
+    var dragProgress by remember { mutableFloatStateOf(0f) }
+    var isDragging by remember { mutableStateOf(false) }
+
+    val snapTarget = if (isExpanded) 1f else 0f
+
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (isDragging) dragProgress else snapTarget,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "playerExpansion"
     )
 
-    val imageSize by animateDpAsState(
-        targetValue = if (isExpanded) 220.dp else 48.dp
-    )
+    val playerHeight = 0.08f + animatedProgress * (1f - 0.08f)
 
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isExpanded) 12.dp else 12.dp
-    )
+    val imageSize = lerp(48.dp, 220.dp, animatedProgress)
+
+    val cornerRadius = lerp(8.dp, 16.dp, animatedProgress)
+
+    val miniAlpha = (1f - animatedProgress * 3.5f).coerceIn(0f, 1f)
+    val expandedAlpha = ((animatedProgress - 0.6f) * 2.5f).coerceIn(0f, 1f)
+
+    val miniControlsScale = lerp(1.dp, 0.85.dp, animatedProgress).value
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .pointerInput(Unit) {
-                detectVerticalDragGestures { change, dragAmount ->
-                    when {
-                        dragAmount < -10 -> expansionState = PlayerExpansionState.EXPANDED
-                        dragAmount > 10 -> expansionState = PlayerExpansionState.COLLAPSED
+                detectVerticalDragGestures(
+                    onDragStart = {
+                        isDragging = true
+                        dragProgress = if (isExpanded) 1f else 0f
+                    },
+                    onDragEnd = {
+                        isDragging = false
+                        expansionState = if (dragProgress > 0.4f)
+                            PlayerExpansionState.EXPANDED
+                        else
+                            PlayerExpansionState.COLLAPSED
+                    },
+                    onDragCancel = {
+                        isDragging = false
+                        // Revine la starea anterioară
+                        dragProgress = if (isExpanded) 1f else 0f
+                    },
+                    onVerticalDrag = { change, dragAmount ->
+                        change.consume()
+                        val delta = -dragAmount / size.height.toFloat()
+                        dragProgress = (dragProgress + delta).coerceIn(0f, 1f)
                     }
-                    change.consume()
-                }
+                )
             }
     ) {
-
         Surface(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .fillMaxHeight(playerHeight)
-                .clickable(enabled = !isExpanded) {
+                .clickable(
+                    enabled = !isExpanded,
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
                     expansionState = PlayerExpansionState.EXPANDED
                 },
             tonalElevation = 6.dp,
+            shape = RoundedCornerShape(
+                topStart = lerp(12.dp, 24.dp, animatedProgress),
+                topEnd = lerp(12.dp, 24.dp, animatedProgress),
+                bottomStart = 0.dp,
+                bottomEnd = 0.dp
+            ),
             color = MaterialTheme.colorScheme.surface
         ) {
+            Box(modifier = Modifier.fillMaxSize()) {
 
-            if (isExpanded) {
-                ExpandedPlayerContent(imageSize, cornerRadius)
-            } else {
-                MiniPlayerContent(imageSize, cornerRadius)
+                // Mini player
+                if (miniAlpha > 0f) {
+                    MiniPlayerContent(
+                        imageSize = imageSize,
+                        cornerRadius = cornerRadius,
+                        controlsScale = miniControlsScale,
+                        modifier = Modifier.alpha(miniAlpha)
+                    )
+                }
+
+                // Expanded player
+                if (expandedAlpha > 0f) {
+                    ExpandedPlayerContent(
+                        imageSize = imageSize,
+                        cornerRadius = cornerRadius,
+                        modifier = Modifier.alpha(expandedAlpha),
+                        onCollapse = { expansionState = PlayerExpansionState.COLLAPSED }
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 8.dp)
+                        .size(width = lerp(24.dp, 36.dp, animatedProgress), height = 4.dp)
+                        .alpha(0.15f + animatedProgress * 0.25f)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(MaterialTheme.colorScheme.onSurface)
+                )
             }
         }
     }
@@ -94,20 +185,22 @@ fun AppPlayerBar() {
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class)
 @Composable
-private fun MiniPlayerContent(imageSize: Dp, cornerRadius: Dp) {
-
+private fun MiniPlayerContent(
+    imageSize: Dp,
+    cornerRadius: Dp,
+    controlsScale: Float = 1f,
+    modifier: Modifier = Modifier
+) {
     val viewModel: MainActivityViewModel =
         hiltViewModel(LocalContext.current as ComponentActivity)
-
     val trackState = viewModel.trackState.collectAsState().value
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         GlideImage(
             model = trackState.trackArtUrl,
             contentDescription = "Album Art",
@@ -117,7 +210,7 @@ private fun MiniPlayerContent(imageSize: Dp, cornerRadius: Dp) {
                 .clip(RoundedCornerShape(cornerRadius))
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
 
         Text(
             text = trackState.trackName,
@@ -135,7 +228,8 @@ private fun MiniPlayerContent(imageSize: Dp, cornerRadius: Dp) {
             isPlaying = trackState.isPlaying,
             hasNext = trackState.hasNextMediaItem,
             onPlayPause = { viewModel.playPauseClick() },
-            onNext = { viewModel.skipForward() }
+            onNext = { viewModel.skipForward() },
+            scale = controlsScale
         )
     }
 }
@@ -145,13 +239,14 @@ private fun MiniPlayerControls(
     isPlaying: Boolean,
     hasNext: Boolean,
     onPlayPause: () -> Unit,
-    onNext: () -> Unit
+    onNext: () -> Unit,
+    scale: Float = 1f
 ) {
-
-    Row(verticalAlignment = Alignment.CenterVertically) {
-
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.scale(scale)
+    ) {
         IconButton(onClick = onPlayPause) {
-
             Icon(
                 painter = painterResource(
                     id = if (isPlaying) R.drawable.ic_not_pause else R.drawable.ic_not_play
@@ -162,9 +257,7 @@ private fun MiniPlayerControls(
         }
 
         if (hasNext) {
-
             IconButton(onClick = onNext) {
-
                 Icon(
                     painter = painterResource(
                         id = androidx.media3.session.R.drawable.media3_icon_next
@@ -180,26 +273,47 @@ private fun MiniPlayerControls(
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun ExpandedPlayerContent(imageSize: Dp, cornerRadius: Dp) {
+private fun ExpandedPlayerContent(
+    imageSize: Dp,
+    cornerRadius: Dp,
+    modifier: Modifier = Modifier,
+    onCollapse: () -> Unit = {}
+) {
     val viewModel: MainActivityViewModel =
         hiltViewModel<MainActivityViewModel>(LocalContext.current as ComponentActivity)
     val trackState = viewModel.trackState.collectAsState().value
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ExpandedPlayerHeader(onStop = { viewModel.stopPlaying() })
         Spacer(modifier = Modifier.height(24.dp))
-        ExpandedAlbumArt(trackState.trackArtUrl, imageSize, cornerRadius)
+
+        ExpandedPlayerHeader(onCollapse = onCollapse)
+
         Spacer(modifier = Modifier.height(32.dp))
-        ExpandedTrackInfo(trackState.trackName)
+
+        ExpandedAlbumArt(
+            url = trackState.trackArtUrl,
+            imageSize = imageSize,
+            cornerRadius = cornerRadius
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        ExpandedTrackInfo(trackName = trackState.trackName)
+
         Spacer(modifier = Modifier.weight(1f))
+
         ExpandedTrackProgress(
             trackDurationFormatted = trackState.trackDurationFormatted,
             onSeek = { viewModel.onProgressUpdate(it.toLong()) }
         )
-        Spacer(modifier = Modifier.height(24.dp))
+
+        Spacer(modifier = Modifier.height(32.dp))
+
         ExpandedPlayerControls(
             isPlaying = trackState.isPlaying,
             hasNext = trackState.hasNextMediaItem,
@@ -207,33 +321,30 @@ private fun ExpandedPlayerContent(imageSize: Dp, cornerRadius: Dp) {
             onPlayPause = { viewModel.playPauseClick() },
             onNext = { viewModel.skipForward() }
         )
-        Spacer(modifier = Modifier.height(16.dp))
+
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
 @Composable
-private fun ExpandedPlayerHeader(onStop: () -> Unit) {
-
+private fun ExpandedPlayerHeader(onCollapse: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Text(
             text = "Now Playing",
             style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        IconButton(onClick = onStop) {
-
+        IconButton(onClick = onCollapse) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_not_close),
-                contentDescription = "Stop",
-                tint = MaterialTheme.colorScheme.onSurface
+                contentDescription = "Collapse",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -242,28 +353,36 @@ private fun ExpandedPlayerHeader(onStop: () -> Unit) {
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun ExpandedAlbumArt(url: String?, imageSize: Dp, cornerRadius: Dp) {
-
-    GlideImage(
-        model = url,
-        contentDescription = "Album Art",
-        contentScale = ContentScale.Crop,
+    // Umbra subtilă în jurul albumului pentru depth
+    Box(
         modifier = Modifier
-            .size(imageSize)
-            .clip(RoundedCornerShape(cornerRadius))
-    )
+            .size(imageSize + 8.dp)
+            .clip(RoundedCornerShape(cornerRadius + 4.dp))
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)),
+        contentAlignment = Alignment.Center
+    ) {
+        GlideImage(
+            model = url,
+            contentDescription = "Album Art",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(imageSize)
+                .clip(RoundedCornerShape(cornerRadius))
+        )
+    }
 }
 
 @Composable
 private fun ExpandedTrackInfo(trackName: String) {
-
     Text(
         text = trackName,
         style = MaterialTheme.typography.headlineSmall,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.onSurface,
         textAlign = TextAlign.Center,
         maxLines = 2,
-        overflow = TextOverflow.Ellipsis
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.fillMaxWidth()
     )
 }
 
@@ -274,24 +393,35 @@ private fun ExpandedTrackProgress(trackDurationFormatted: String, onSeek: (Float
         hiltViewModel<MainActivityViewModel>(LocalContext.current as ComponentActivity)
     val trackProgress = viewModel.trackLiveProgress.collectAsState().value
     val trackProgressFormatted = viewModel.trackProgressFormatted.collectAsState().value
-    Slider(
-        value = trackProgress,
-        onValueChange = onSeek,
-        valueRange = 0f..100f,
-        colors = SliderDefaults.colors(
-            thumbColor = MaterialTheme.colorScheme.primary,
-            activeTrackColor = MaterialTheme.colorScheme.primary,
-            inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-        ),
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
-    )
 
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(trackProgressFormatted, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
-        Text(trackDurationFormatted, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Slider(
+            value = trackProgress,
+            onValueChange = onSeek,
+            valueRange = 0f..100f,
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = trackProgressFormatted,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = trackDurationFormatted,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -303,67 +433,60 @@ private fun ExpandedPlayerControls(
     onPlayPause: () -> Unit,
     onNext: () -> Unit
 ) {
-
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        IconButton(onClick = onPrevious) {
-
+        IconButton(
+            onClick = onPrevious,
+            modifier = Modifier.size(48.dp)
+        ) {
             Icon(
                 painter = painterResource(
                     id = androidx.media3.session.R.drawable.media3_icon_next
                 ),
                 contentDescription = "Previous",
-                modifier = Modifier.rotate(180f),
+                modifier = Modifier
+                    .size(28.dp)
+                    .rotate(180f),
                 tint = MaterialTheme.colorScheme.onSurface
             )
         }
 
-        Box(
-            modifier = Modifier
-                .size(72.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
-                .clickable { onPlayPause() },
-            contentAlignment = Alignment.Center
+        FilledIconButton(
+            onClick = onPlayPause,
+            modifier = Modifier.size(72.dp),
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
         ) {
-
             Icon(
                 painter = painterResource(
                     id = if (isPlaying) R.drawable.ic_not_pause else R.drawable.ic_not_play
                 ),
                 contentDescription = if (isPlaying) "Pause" else "Play",
                 tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(34.dp)
+                modifier = Modifier.size(32.dp)
             )
         }
 
         IconButton(
-            onClick = onNext,
-            enabled = hasNext
+            onClick = onPlayPause,
+            enabled = hasNext,
+            modifier = Modifier.size(48.dp)
         ) {
-
             Icon(
                 painter = painterResource(
                     id = androidx.media3.session.R.drawable.media3_icon_next
                 ),
                 contentDescription = "Next",
+                modifier = Modifier.size(28.dp),
                 tint = if (hasNext)
                     MaterialTheme.colorScheme.onSurface
                 else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
             )
         }
     }
-}
-
-@Preview
-@Composable
-fun AppPlayerBarPreview() {
-    AppPlayerBar()
 }
