@@ -1,0 +1,21 @@
+-- Migrates schema v1 -> v2: PlaylistTrack primary key changes from (path) to (playlist_id, path).
+-- SQLite can't alter a primary key in place, so the table is rebuilt.
+-- Foreign keys were never enabled in v1, so rows of deleted playlists were left behind;
+-- they are dropped here (copying them would also fail now that foreign keys are enforced).
+
+CREATE TABLE PlaylistTrack_new (
+    playlist_id INTEGER NOT NULL,
+    track_name TEXT NOT NULL,
+    path TEXT NOT NULL,
+    art_path TEXT,
+    PRIMARY KEY (playlist_id, path),
+    FOREIGN KEY (playlist_id) REFERENCES Playlist(id) ON DELETE CASCADE
+);
+
+INSERT INTO PlaylistTrack_new (playlist_id, track_name, path, art_path)
+SELECT playlist_id, track_name, path, art_path FROM PlaylistTrack
+WHERE playlist_id IN (SELECT id FROM Playlist);
+
+DROP TABLE PlaylistTrack;
+
+ALTER TABLE PlaylistTrack_new RENAME TO PlaylistTrack;

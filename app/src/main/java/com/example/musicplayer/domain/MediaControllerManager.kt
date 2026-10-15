@@ -39,6 +39,8 @@ interface MediaControllerManager {
 
     fun getCurrentPlayingTrackPath(): String
 
+    fun getCurrentPlayingTrack(): Track?
+
     fun setCurrentTrackPlayingIndex()
 
     fun startAudioPlayback(trackList: List<Track>, index: Int)

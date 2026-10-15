@@ -27,16 +27,7 @@ class MainActivityViewModel @Inject constructor(
 
     private var updateTrackProgressJob: Job? = null
 
-    private val _state = MutableStateFlow(
-        TrackState(
-            trackName = "",
-            trackArtUrl = "",
-            trackDurationFormatted = "0:00",
-            isPlaying = false,
-            stopped = true,
-            hasNextMediaItem = false
-        )
-    )
+    private val _state = MutableStateFlow(TrackState())
     val trackState: StateFlow<TrackState> = _state
 
     private val _trackLiveProgress = MutableStateFlow(0f)
@@ -91,14 +82,7 @@ class MainActivityViewModel @Inject constructor(
 
     override fun onCleared() {
         mediaControllerManager.release()
-        _state.value = TrackState(
-            trackName = "",
-            trackArtUrl = "",
-            trackDurationFormatted = "0:00",
-            isPlaying = false,
-            stopped = true,
-            hasNextMediaItem = false
-        )
+        _state.value = TrackState()
         _trackLiveProgress.value = 0f
         _trackProgressFormatted.value = "0:00"
         super.onCleared()
@@ -109,11 +93,22 @@ class MainActivityViewModel @Inject constructor(
         updateAudioStateStartOrResume()
     }
 
+    fun playAll(trackList: List<Track>, shuffle: Boolean) {
+        if (trackList.isEmpty()) return
+        startAudioPlayback(if (shuffle) trackList.shuffled() else trackList, 0)
+    }
+
     fun playPauseClick() = mediaControllerManager.playPauseClick()
 
     fun stopPlaying() = mediaControllerManager.stopPlaying()
 
-    fun onProgressUpdate(it: Long) = mediaControllerManager.onProgressUpdate(it)
+    fun onProgressUpdate(it: Long) {
+        mediaControllerManager.onProgressUpdate(it)
+        // Reflect the seek right away; the polling loop isn't running while paused
+        _trackLiveProgress.value = it.toFloat()
+        _trackProgressFormatted.value =
+            MusicUtils.formatDurationFromMillis(_state.value.durationMs * it / 100)
+    }
 
     fun playPrevious() = mediaControllerManager.seekToPreviousMediaItem(_trackLiveProgress.value.toLong())
 
@@ -123,23 +118,23 @@ class MainActivityViewModel @Inject constructor(
     // State Updates (audio info)
     // =========================
 
-    private fun updateAudioStateStartOrResume() {
-        _state.value = _state.value.copy(
-            trackName = mediaControllerManager.getCurrentPlayingTrackName(),
-            trackArtUrl = musicFoldersRepository.getAlbumIconUrl(mediaControllerManager.getCurrentPlayingTrackPath()),
-            trackDurationFormatted = MusicUtils.formatDurationFromMillis(mediaControllerManager.currentTrackDuration()),
-            isPlaying = mediaControllerManager.isCurrentlyPlaying(),
-            stopped = false,
-            hasNextMediaItem = mediaControllerManager.hasNextMediaItem()
-        )
-    }
+    private fun updateAudioStateStartOrResume() =
+        updateTrackInfo(isPlaying = mediaControllerManager.isCurrentlyPlaying())
 
-    private fun updateAudioStatePause() {
+    private fun updateAudioStatePause() = updateTrackInfo(isPlaying = false)
+
+    private fun updateTrackInfo(isPlaying: Boolean) {
+        val track = mediaControllerManager.getCurrentPlayingTrack() ?: return
+        val duration = mediaControllerManager.currentTrackDuration().coerceAtLeast(0)
         _state.value = _state.value.copy(
-            trackName = mediaControllerManager.getCurrentPlayingTrackName(),
-            trackArtUrl = musicFoldersRepository.getAlbumIconUrl(mediaControllerManager.getCurrentPlayingTrackPath()),
-            trackDurationFormatted = MusicUtils.formatDurationFromMillis(mediaControllerManager.currentTrackDuration()),
-            isPlaying = false,
+            trackName = track.name,
+            title = track.trackName.ifBlank { track.name },
+            artist = track.artistName,
+            trackPath = track.path,
+            trackArtUrl = musicFoldersRepository.getAlbumIconUrl(track.path),
+            trackDurationFormatted = MusicUtils.formatDurationFromMillis(duration),
+            durationMs = duration,
+            isPlaying = isPlaying,
             stopped = false,
             hasNextMediaItem = mediaControllerManager.hasNextMediaItem()
         )
@@ -158,6 +153,7 @@ class MainActivityViewModel @Inject constructor(
     // =========================
 
     private fun startProgressUpdate() {
+        updateTrackProgressJob?.cancel()
         updateTrackProgressJob = viewModelScope.launch {
             while (true) {
                 delay(100)
@@ -176,10 +172,14 @@ class MainActivityViewModel @Inject constructor(
 }
 
 data class TrackState(
-    val trackName: String,
-    val trackArtUrl: String,
-    val trackDurationFormatted: String, // adaugat
-    val isPlaying: Boolean,
-    val stopped: Boolean,
-    val hasNextMediaItem: Boolean
+    val trackName: String = "",
+    val title: String = "",
+    val artist: String = "",
+    val trackPath: String = "",
+    val trackArtUrl: String = "",
+    val trackDurationFormatted: String = "0:00",
+    val durationMs: Long = 0,
+    val isPlaying: Boolean = false,
+    val stopped: Boolean = true,
+    val hasNextMediaItem: Boolean = false
 )

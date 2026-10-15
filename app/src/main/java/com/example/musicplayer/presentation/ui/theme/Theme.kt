@@ -1,77 +1,100 @@
 package com.example.musicplayer.presentation.ui.theme
 
 import android.app.Activity
-import android.os.Build
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.Shapes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import com.example.musicplayer.domain.model.DarkMode
+import com.example.musicplayer.domain.model.ThemeSettings
 
-
-private val LightColorScheme = lightColorScheme(
-    primary = Primary,
-    secondary = Secondary,
-    tertiary = Accent,
-
-    background = Canvas,
-    surface = Color.White,
-
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onSurface = Color.Black,
-    onBackground = Color.Black
+private val AppShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(32.dp),
 )
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Primary,
-    secondary = Secondary,
-    tertiary = Accent,
+@Composable
+fun ThemeSettings.isDark(): Boolean = when (darkMode) {
+    DarkMode.SYSTEM -> isSystemInDarkTheme()
+    DarkMode.LIGHT -> false
+    DarkMode.DARK -> true
+}
 
-    background = CanvasDark,
-    surface = Color(0xFF1E1E1E),
-
-    onPrimary = Color.Black,
-    onSecondary = Color.Black,
-    onSurface = Color.White,
-    onBackground = Color.White
-)
 @Composable
 fun MusicplayerTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    settings: ThemeSettings = ThemeSettings(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+    val darkTheme = settings.isDark()
+    val context = LocalContext.current
+    val target =
+        remember(settings.theme, darkTheme) { settings.theme.colorScheme(darkTheme, context) }
+    val colorScheme = animateColorScheme(target)
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
+            }
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = AppShapes,
         content = content
+    )
+}
+
+/** Cross-fades every color role, so switching themes melts one palette into the next. */
+@Composable
+private fun animateColorScheme(target: ColorScheme): ColorScheme {
+    val spec: AnimationSpec<Color> = tween(durationMillis = Motion.ThemeFadeMillis)
+
+    @Composable
+    fun Color.animated(): Color = animateColorAsState(this, spec, label = "themeColor").value
+
+    return target.copy(
+        primary = target.primary.animated(),
+        onPrimary = target.onPrimary.animated(),
+        primaryContainer = target.primaryContainer.animated(),
+        onPrimaryContainer = target.onPrimaryContainer.animated(),
+        secondary = target.secondary.animated(),
+        onSecondary = target.onSecondary.animated(),
+        secondaryContainer = target.secondaryContainer.animated(),
+        onSecondaryContainer = target.onSecondaryContainer.animated(),
+        tertiary = target.tertiary.animated(),
+        tertiaryContainer = target.tertiaryContainer.animated(),
+        background = target.background.animated(),
+        onBackground = target.onBackground.animated(),
+        surface = target.surface.animated(),
+        onSurface = target.onSurface.animated(),
+        surfaceVariant = target.surfaceVariant.animated(),
+        onSurfaceVariant = target.onSurfaceVariant.animated(),
+        outline = target.outline.animated(),
+        outlineVariant = target.outlineVariant.animated(),
+        surfaceContainerLow = target.surfaceContainerLow.animated(),
+        surfaceContainer = target.surfaceContainer.animated(),
+        surfaceContainerHigh = target.surfaceContainerHigh.animated(),
+        surfaceContainerHighest = target.surfaceContainerHighest.animated(),
     )
 }

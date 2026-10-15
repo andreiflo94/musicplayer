@@ -1,29 +1,49 @@
 package com.example.musicplayer.presentation.ui.screens
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Email
-import androidx.compose.material3.*
+import androidx.compose.material.icons.rounded.LibraryMusic
+import androidx.compose.material.icons.rounded.LockOpen
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.example.musicplayer.presentation.ContentScaffold
-import com.example.musicplayer.presentation.ui.AppPlayerBar
+import com.example.musicplayer.presentation.AppShell
+import com.example.musicplayer.presentation.ui.components.AuroraBackground
+import com.example.musicplayer.presentation.ui.components.EmptyState
+import com.example.musicplayer.presentation.ui.components.GradientPillButton
+import com.example.musicplayer.presentation.ui.components.TonalPillButton
+import com.example.musicplayer.presentation.ui.preview.PreviewScreen
+import com.example.musicplayer.presentation.ui.theme.Motion
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RequiredPermissionScreen() {
@@ -43,12 +63,22 @@ fun RequiredPermissionScreen() {
         }
     }
 
-    Scaffold { padding ->
-        if (permissionState.status.isGranted) {
-            GrantedContent()
+    AnimatedContent(
+        targetState = permissionState.status.isGranted,
+        transitionSpec = {
+            (fadeIn() + scaleIn(
+                Motion.fluid(),
+                initialScale = 0.92f
+            )) togetherWith fadeOut()
+        },
+        label = "permissionGate"
+    ) { granted ->
+        if (granted) {
+            AppShell()
         } else {
             PermissionDeniedContent(
-                modifier = Modifier.padding(padding),
+                canAskAgain = permissionState.status.shouldShowRationale,
+                onRequest = { permissionState.launchPermissionRequest() },
                 onGoToSettings = {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.fromParts("package", context.packageName, null)
@@ -61,68 +91,61 @@ fun RequiredPermissionScreen() {
 }
 
 @Composable
-private fun GrantedContent() {
-    ContentScaffold(
-        audioPlayer = { AppPlayerBar() },
-        content = { BottomNavigationScreen() }
-    )
-}
-
-@Composable
 private fun PermissionDeniedContent(
-    modifier: Modifier = Modifier,
-    onGoToSettings: () -> Unit
+    canAskAgain: Boolean,
+    onRequest: () -> Unit,
+    onGoToSettings: () -> Unit,
 ) {
     Box(
-        modifier = Modifier
+        Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .then(modifier)
     ) {
+        AuroraBackground(Modifier.fillMaxSize())
+        EmptyState(
+            icon = Icons.Rounded.LibraryMusic,
+            title = "Let's find your music",
+            message = "Allow access to audio files so your songs can show up here. Nothing leaves your device.",
+            modifier = Modifier.align(Alignment.Center)
+        )
         Column(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            PermissionExplanation()
-        }
-
-        GoToSettingsButton(
-            modifier = Modifier
+            Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(16.dp),
-            onClick = onGoToSettings
-        )
+                .navigationBarsPadding()
+                .padding(24.dp)
+        ) {
+            if (canAskAgain) {
+                GradientPillButton(
+                    "Allow access",
+                    Icons.Rounded.LockOpen,
+                    onRequest,
+                    Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(12.dp))
+            }
+            TonalPillButton(
+                "Open settings",
+                Icons.Rounded.Settings,
+                onGoToSettings,
+                Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
+@PreviewLightDark
 @Composable
-private fun PermissionExplanation() {
-    Icon(
-        Icons.Rounded.Email,
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.primary
-    )
-    Spacer(Modifier.height(8.dp))
-    Text(
-        "Read internal storage permission required",
-        style = MaterialTheme.typography.bodyMedium
-    )
-    Spacer(Modifier.height(4.dp))
-    Text("This is required to scan your media files")
+private fun PermissionDeniedContentPreview() {
+    PreviewScreen {
+        PermissionDeniedContent(canAskAgain = true, onRequest = {}, onGoToSettings = {})
+    }
 }
 
+@Preview(name = "Permanently denied")
 @Composable
-private fun GoToSettingsButton(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Button(
-        modifier = modifier,
-        onClick = onClick
-    ) {
-        Text("Go to settings")
+private fun PermissionDeniedContentSettingsPreview() {
+    PreviewScreen {
+        PermissionDeniedContent(canAskAgain = false, onRequest = {}, onGoToSettings = {})
     }
 }

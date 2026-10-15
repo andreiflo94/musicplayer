@@ -16,9 +16,9 @@ class MusicFoldersViewModel @Inject constructor(
 ) :
     ViewModel() {
 
-    private val _musicFoldersState: MutableStateFlow<List<MusicFolder>> =
-        MutableStateFlow(emptyList())
-    val musicFoldersState: StateFlow<List<MusicFolder>> get() = _musicFoldersState
+    // null while loading
+    private val _musicFoldersState: MutableStateFlow<List<MusicFolder>?> = MutableStateFlow(null)
+    val musicFoldersState: StateFlow<List<MusicFolder>?> get() = _musicFoldersState
 
     init {
         loadMusicFolders()

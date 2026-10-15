@@ -73,6 +73,8 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
         return trackList[currentTrackIndex].path
     }
 
+    override fun getCurrentPlayingTrack(): Track? = trackList.getOrNull(currentTrackIndex)
+
     override fun setCurrentTrackPlayingIndex() {
         Log.d("MediaControllerManager", "setCurrentTrackPlayingIndex: ")
         this.currentTrackIndex = controller?.currentMediaItemIndex ?: 0

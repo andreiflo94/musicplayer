@@ -59,8 +59,8 @@ class PlaylistRepositoryImpl(database: musicplayer) : PlaylistRepository {
         }
     }
 
-    override fun deleteTrack(path: String) {
-        queries.deleteTrackById(path)
+    override fun deleteTrack(playlistId: Long, path: String) {
+        queries.deleteTrackById(playlistId, path)
     }
 
     override fun insertTrackToNewPlaylist(

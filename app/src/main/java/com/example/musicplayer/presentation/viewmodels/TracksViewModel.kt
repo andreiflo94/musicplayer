@@ -18,18 +18,18 @@ class TracksViewModel @Inject constructor(
 ) :
     ViewModel() {
 
-    private val _tracksState: MutableStateFlow<List<Track>> =
-        MutableStateFlow(emptyList())
-    val tracksState: StateFlow<List<Track>> get() = _tracksState
+    // null while loading
+    private val _tracksState: MutableStateFlow<List<Track>?> = MutableStateFlow(null)
+    val tracksState: StateFlow<List<Track>?> get() = _tracksState
 
     init {
-        state.get<String>("path")?.let { path ->
-            if (path.isNotBlank()) {
-                loadMusicFilesFromPath(path)
-            }
+        val path = state.get<String>("path")
+        if (path.isNullOrBlank()) {
+            _tracksState.value = emptyList()
+        } else {
+            loadMusicFilesFromPath(path)
         }
     }
-
 
     private fun loadMusicFilesFromPath(path: String) {
         viewModelScope.launch {

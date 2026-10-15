@@ -33,7 +33,7 @@ class FakePlaylistRepository : PlaylistRepository {
         TODO("Not yet implemented")
     }
 
-    override fun deleteTrack(path: String) {
+    override fun deleteTrack(playlistId: Long, path: String) {
         TODO("Not yet implemented")
     }
 

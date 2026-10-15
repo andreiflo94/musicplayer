@@ -14,7 +14,7 @@ interface PlaylistRepository {
     // PlaylistTrack CRUD Operations
     fun insertTrack(playlistId: Long, trackName: String, path: String, artPath: String?)
     fun getTracksForPlaylist(playlistId: Long): List<Track>
-    fun deleteTrack(path: String)
+    fun deleteTrack(playlistId: Long, path: String)
 
     fun insertTrackToNewPlaylist(playlistName: String, trackName: String, path: String, artPath: String?)
 }

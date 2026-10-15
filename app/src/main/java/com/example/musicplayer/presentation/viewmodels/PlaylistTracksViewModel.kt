@@ -3,11 +3,9 @@ package com.example.musicplayer.presentation.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.musicplayer.domain.model.MusicFolder
 import com.example.musicplayer.domain.model.Track
 import com.example.musicplayer.domain.repo.PlaylistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -20,22 +18,30 @@ class PlaylistTracksViewModel @Inject constructor(
 ) :
     ViewModel() {
 
-    private val _playlistTracksState: MutableStateFlow<List<Track>> =
-        MutableStateFlow(emptyList())
-    val playlistTracksState: StateFlow<List<Track>> get() = _playlistTracksState
+    private val playlistId: Long = state.get<Long>("playlistId") ?: -1L
+
+    // null while loading
+    private val _playlistTracksState: MutableStateFlow<List<Track>?> = MutableStateFlow(null)
+    val playlistTracksState: StateFlow<List<Track>?> get() = _playlistTracksState
 
     init {
-        state.get<Long>("playlistId")?.let { playlistId ->
-            if (playlistId != -1L) {
-                loadTracksFromPlaylist(playlistId)
-            }
+        if (playlistId != -1L) {
+            loadTracksFromPlaylist()
+        } else {
+            _playlistTracksState.value = emptyList()
         }
     }
 
-    private fun loadTracksFromPlaylist(playlistId: Long) {
+    fun removeTrack(track: Track) {
+        viewModelScope.launch {
+            playlistTracksRepository.deleteTrack(playlistId, track.path)
+            loadTracksFromPlaylist()
+        }
+    }
+
+    private fun loadTracksFromPlaylist() {
         viewModelScope.launch {
             _playlistTracksState.value = playlistTracksRepository.getTracksForPlaylist(playlistId)
         }
-
     }
 }

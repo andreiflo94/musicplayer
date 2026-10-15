@@ -1,75 +1,98 @@
 # 🎵 MusicPlayer
 
-A modern, lightweight music player app for Android built with Jetpack Compose, powered by Media3 API for audio playback and SQLDelight for playlist management.
+A modern, lightweight music player for Android that plays the music already on your phone. It's
+built with Jetpack Compose and Material3, uses Media3 (ExoPlayer) for playback, and stores playlists
+with SQLDelight.
 
-Designed with Clean Architecture (data/domain/presentation) and Material3 UI, the app lets you easily browse your local music folders, create and manage playlists, and enjoy smooth playback with persistent notifications and lockscreen integration.
+Browse your music by folder, build playlists, and listen through a player that slides up from a mini
+bar into a full-screen view with a spinning vinyl and a wave-shaped seek bar. Notification,
+lockscreen and headset controls work too, and seven color themes are available in light or dark
+mode.
 
 ➡️ [Download MusicPlayer APK](https://github.com/andreiflo94/musicplayer/raw/master/builds/app-debug.apk)
 
+## 📸 Screenshots
+
+|                        Library                        |                        Album                        |                     Now playing                      |                        Playlists                        |
+|:-----------------------------------------------------:|:---------------------------------------------------:|:----------------------------------------------------:|:-------------------------------------------------------:|
+| <img src="docs/screenshots/library.jpg" width="200"/> | <img src="docs/screenshots/album.jpg" width="200"/> | <img src="docs/screenshots/player.jpg" width="200"/> | <img src="docs/screenshots/playlists.jpg" width="200"/> |
+
+|                        Themes                        |                       Aurora · light                       |                        Ocean · dark                        |                       Ocean · library                       |
+|:----------------------------------------------------:|:----------------------------------------------------------:|:----------------------------------------------------------:|:-----------------------------------------------------------:|
+| <img src="docs/screenshots/themes.jpg" width="200"/> | <img src="docs/screenshots/player_light.jpg" width="200"/> | <img src="docs/screenshots/tracks_ocean.jpg" width="200"/> | <img src="docs/screenshots/library_ocean.jpg" width="200"/> |
+
 ## ✨ Features
 
-📂 Browse by Folders – Automatically scans your storage and lists available music folders.
+📂 **Browse by folder**: scans your storage and shows each music folder as a cover-art grid.
 
-🎶 Playback Controls – Play/Pause, Next/Previous, Seek bar with smooth progress updates.
+💿 **Album view**: big cover header that fades as you scroll, Play and Shuffle buttons, and animated
+equalizer bars on the track that's playing.
 
-🖼 Artwork & Metadata – Displays album art, artist, and track name.
+🎚 **Morphing player**: tap or drag the mini player to expand it into a full-screen player, and drag
+it back down to collapse it. Swipe the cover sideways to skip tracks. The seek bar ripples like a
+wave while music plays.
 
-📑 Playlist Management – Create and delete playlists using SQLDelight.
+📑 **Playlists**: create a playlist and add tracks to it from any track list, then play or shuffle
+it. A track can be in as many playlists as you like.
 
-🔔 Persistent Notification – Full playback control directly from the notification bar.
+🎨 **Themes**: Wallpaper (Material You), Aurora, Sunset, Ocean, Forest, Rose and Noir, each in Auto,
+Light or Dark mode, behind a slowly drifting aurora background.
 
-🔒 Lockscreen & Headset Integration – Control playback from your lockscreen and headset buttons.
+🔔 **System integration**: notification controls, lockscreen controls, and headset buttons.
 
-🧭 Navigation – Simple bottom navigation between Music Folders and Playlists.
-
-🌙 Dark mode
-
-🎨 Modern UI – Built entirely with Jetpack Compose and Material3.
+📱 **Phones & tablets**: phones get a floating tab bar; tablets show Library and Playlists side by
+side.
 
 ## 🏗 Architecture
 
-The project follows a Clean Architecture approach with three main layers:
+The project follows Clean Architecture with three layers, plus Hilt for dependency injection.
 
-### Data Layer
-Responsible for accessing the MediaStore (scanning music files and folders).
-Provides repositories to manage playlists using SQLDelight.
-Handles playback logic through MediaControllerManagerImpl.
+### Data
 
-### Domain Layer
-Defines core interfaces and models (Track, MediaControllerManager).
+- Scans `MediaStore` for music folders, tracks and album art.
+- Stores playlists with SQLDelight; schema changes ship as `.sqm` migrations.
+- Saves theme settings in SharedPreferences.
+- Connects to the playback service through `MediaControllerManagerImpl`.
 
-### Presentation Layer
-Built with Jetpack Compose (Material3).
-Includes bottom navigation, folder browsing, playlist screens, and now-playing UI.
+### Domain
+
+Holds the core models (`Track`, `ThemeSettings`, …) and the interfaces: `MediaControllerManager`
+plus the repositories.
+
+### Presentation
+
+- Built with Jetpack Compose and Material3.
+- `AppShell` stacks the tab content, the player sheet and the floating nav bar.
+- Each tab has its own `NavHost`.
+- A single activity-scoped `MainActivityViewModel` turns player events into UI state.
+
+### Playback
+
+`PlaybackService` (a Media3 `MediaSessionService`) owns ExoPlayer and the media session, so playback
+keeps going in the background and shows up in the notification and on the lockscreen.
 
 ## ⚙️ Tech Stack
 
-Kotlin + Coroutines
+- Kotlin + Coroutines / Flow
+- Jetpack Compose (Material3, Navigation Compose)
+- Media3 (ExoPlayer, MediaSession)
+- SQLDelight (playlists)
+- Hilt (dependency injection)
+- Glide Compose (album art)
+- Accompanist Permissions
 
-Jetpack Compose (Material3)
+## 🛠 Building
 
-Media3 (ExoPlayer, MediaSession, UI)
+```bash
+./gradlew assembleDebug        # build the APK
+./gradlew installDebug         # install on a connected device
+./gradlew testDebugUnitTest    # run unit tests
+```
 
-SQLDelight for playlists
-
-Hilt (Dependency Injection)
-
-Glide Compose for album art
-
-Accompanist Permissions
+Every push to `master` triggers a CI build, and the resulting APK is committed to
+`builds/app-debug.apk`.
 
 ## 🧪 Testing
 
-Includes unit tests with Mockito for MediaControllerManager.
-
-Basic tests cover playback state, track info, and interaction with the controller.
-
-UI tests can be extended using Compose UI Test.
-
-## 📸 Screenshots
-<img src="https://github.com/user-attachments/assets/a6765775-ebd1-4c10-98ed-9ce8f9c2df5c" width="250"/>
-<img src="https://github.com/user-attachments/assets/aa420b72-fabb-4039-a7b3-f3390d413a6a" width="250"/>
-<img src="https://github.com/user-attachments/assets/a729826b-d5aa-48b5-99bf-282c1af48346" width="250"/>
-<img src="https://github.com/user-attachments/assets/80a392a5-b27c-4f8e-b64e-74a801a8b92a" width="250"/>
-<img src="https://github.com/user-attachments/assets/4000f098-75d2-4aff-a4de-413b979bd1f3" width="250"/>
-<img src="https://github.com/user-attachments/assets/61bf1792-8c9a-4a39-8305-8debdfcfac6f" width="250"/>
+JVM unit tests use Mockito against the `MediaControllerManager` interface. They cover playback
+state, track info and the interactions with the controller.
