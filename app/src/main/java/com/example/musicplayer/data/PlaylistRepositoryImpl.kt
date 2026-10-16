@@ -48,15 +48,19 @@ class PlaylistRepositoryImpl(database: musicplayer) : PlaylistRepository {
         queries.insertTrack(playlistId, trackName, path, artPath)
     }
 
-    override fun getTracksForPlaylist(playlistId: Long): List<Track> {
-        return queries.selectTracksByPlaylistId(playlistId).executeAsList().map {
-            Track(
-                artistName = it.track_name.split(" - ")[0],
-                trackName = it.track_name.split(" - ")[1],
-                path = it.path,
-                albumIconUrl = it.art_path
-            )
-        }
+    override fun getTracksForPlaylist(playlistId: Long): Flow<List<Track>> {
+        return queries.selectTracksByPlaylistId(playlistId).asFlow()
+            .mapToList(Dispatchers.IO).map { rows ->
+                rows.map {
+                    val (artist, title) = splitStoredTrackName(it.track_name)
+                    Track(
+                        artistName = artist,
+                        trackName = title,
+                        path = it.path,
+                        albumIconUrl = it.art_path
+                    )
+                }
+            }
     }
 
     override fun deleteTrack(playlistId: Long, path: String) {
@@ -80,4 +84,13 @@ class PlaylistRepositoryImpl(database: musicplayer) : PlaylistRepository {
             queries.insertTrack(playlistId, trackName, path, artPath)
         }
     }
+}
+
+/**
+ * Splits a stored [Track.name] back into (artist, title). Track.name drops the " - " separator
+ * when either part is blank, so a name without one is treated as a bare title.
+ */
+internal fun splitStoredTrackName(storedName: String): Pair<String, String> {
+    val parts = storedName.split(" - ", limit = 2)
+    return if (parts.size == 2) parts[0] to parts[1] else "" to storedName
 }

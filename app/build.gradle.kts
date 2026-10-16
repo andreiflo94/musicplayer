@@ -45,6 +45,12 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"
     }
+    testOptions {
+        // android.util.Log and friends are stubs on the JVM
+        unitTests.isReturnDefaultValues = true
+    }
+    // MockContentResolver, used to fake MediaStore in instrumented tests
+    useLibrary("android.test.mock")
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -89,6 +95,11 @@ dependencies {
     // Needed for createAndroidComposeRule, but not createComposeRule:
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.8")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("app.cash.sqldelight:sqlite-driver:2.0.2")
+    androidTestImplementation("androidx.test:runner:1.6.1")
+    androidTestImplementation("androidx.test:rules:1.6.1")
+    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 
     implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
 

@@ -121,9 +121,12 @@ class MainActivityViewModel @Inject constructor(
     private fun updateAudioStateStartOrResume() =
         updateTrackInfo(isPlaying = mediaControllerManager.isCurrentlyPlaying())
 
-    private fun updateAudioStatePause() = updateTrackInfo(isPlaying = false)
+    // Keeps `stopped`: Media3 reports isPlaying=false right after STATE_ENDED/STATE_IDLE, and that
+    // mustn't bring the hidden player back.
+    private fun updateAudioStatePause() =
+        updateTrackInfo(isPlaying = false, stopped = _state.value.stopped)
 
-    private fun updateTrackInfo(isPlaying: Boolean) {
+    private fun updateTrackInfo(isPlaying: Boolean, stopped: Boolean = false) {
         val track = mediaControllerManager.getCurrentPlayingTrack() ?: return
         val duration = mediaControllerManager.currentTrackDuration().coerceAtLeast(0)
         _state.value = _state.value.copy(
@@ -135,7 +138,7 @@ class MainActivityViewModel @Inject constructor(
             trackDurationFormatted = MusicUtils.formatDurationFromMillis(duration),
             durationMs = duration,
             isPlaying = isPlaying,
-            stopped = false,
+            stopped = stopped,
             hasNextMediaItem = mediaControllerManager.hasNextMediaItem()
         )
     }

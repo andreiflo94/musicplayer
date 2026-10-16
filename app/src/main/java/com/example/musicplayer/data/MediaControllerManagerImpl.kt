@@ -11,6 +11,7 @@ import androidx.media3.session.SessionToken
 import com.example.musicplayer.PlaybackService
 import com.example.musicplayer.domain.MediaControllerEvent
 import com.example.musicplayer.domain.MediaControllerManager
+import com.example.musicplayer.domain.PlaybackRules
 import com.example.musicplayer.domain.model.Track
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -64,13 +65,13 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
 
     override fun getCurrentPlayingTrackName(): String {
         Log.d("MediaControllerManager", "getCurrentTrackName: ")
-        val track = trackList[currentTrackIndex]
+        val track = getCurrentPlayingTrack() ?: return ""
         return track.artistName + " - " + track.trackName
     }
 
     override fun getCurrentPlayingTrackPath(): String {
         Log.d("MediaControllerManager", "getCurrentTrackPath: ")
-        return trackList[currentTrackIndex].path
+        return getCurrentPlayingTrack()?.path ?: ""
     }
 
     override fun getCurrentPlayingTrack(): Track? = trackList.getOrNull(currentTrackIndex)
@@ -110,9 +111,8 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
 
     override fun seekToPreviousMediaItem(progress: Long) {
         Log.d("MediaControllerManager", "seekToPreviousMediaItem: $progress")
-        if (progress > 0) {
-            controller?.seekTo(0)
-        } else if (controller?.hasPreviousMediaItem() == true) {
+        val hasPrevious = controller?.hasPreviousMediaItem() == true
+        if (PlaybackRules.previousGoesToPreviousSong(progress, hasPrevious)) {
             controller?.seekToPreviousMediaItem()
         } else {
             controller?.seekTo(0)
@@ -127,7 +127,8 @@ class MediaControllerManagerImpl @Inject constructor(@ApplicationContext private
     override fun onProgressUpdate(progress: Long) {
         Log.d("MediaControllerManager", "onProgressUpdate: $progress")
         val duration = controller?.duration ?: return
-        val seekTo = ((duration * progress) / 100f).toLong()
+        // Null while the duration is C.TIME_UNSET, i.e. the track hasn't loaded yet
+        val seekTo = PlaybackRules.seekPositionMs(duration, progress) ?: return
         controller?.seekTo(seekTo)
     }
 

@@ -56,6 +56,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -421,6 +422,13 @@ private fun ControlIcon(
     )
 }
 
+/**
+ * The halo's color for an [energy] that springs between 0 (paused) and 1 (playing). Motion.fluid()
+ * overshoots, so energy dips just below 0 on pause, and Color rejects a negative alpha.
+ */
+internal fun haloColor(primary: Color, energy: Float): Color =
+    primary.copy(alpha = 0.22f * energy.coerceIn(0f, 1f))
+
 /** Gradient play button with a halo that breathes while music plays. */
 @Composable
 private fun BigPlayButton(isPlaying: Boolean, onClick: () -> Unit) {
@@ -445,7 +453,7 @@ private fun BigPlayButton(isPlaying: Boolean, onClick: () -> Unit) {
             .size(96.dp)
             .drawBehind {
                 val halo = size.minDimension / 2f * (0.78f + 0.2f * breath * energy)
-                drawCircle(scheme.primary.copy(alpha = 0.22f * energy), halo)
+                drawCircle(haloColor(scheme.primary, energy), halo)
             },
         contentAlignment = Alignment.Center
     ) {

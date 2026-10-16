@@ -26,22 +26,23 @@ class PlaylistTracksViewModel @Inject constructor(
 
     init {
         if (playlistId != -1L) {
-            loadTracksFromPlaylist()
+            observeTracksFromPlaylist()
         } else {
             _playlistTracksState.value = emptyList()
         }
     }
 
+    // The tracks flow re-emits after the delete, so there's nothing to reload here
     fun removeTrack(track: Track) {
-        viewModelScope.launch {
-            playlistTracksRepository.deleteTrack(playlistId, track.path)
-            loadTracksFromPlaylist()
-        }
+        playlistTracksRepository.deleteTrack(playlistId, track.path)
     }
 
-    private fun loadTracksFromPlaylist() {
+    // Observed rather than loaded once, so tracks added from the Library tab show up here
+    private fun observeTracksFromPlaylist() {
         viewModelScope.launch {
-            _playlistTracksState.value = playlistTracksRepository.getTracksForPlaylist(playlistId)
+            playlistTracksRepository.getTracksForPlaylist(playlistId).collect {
+                _playlistTracksState.value = it
+            }
         }
     }
 }

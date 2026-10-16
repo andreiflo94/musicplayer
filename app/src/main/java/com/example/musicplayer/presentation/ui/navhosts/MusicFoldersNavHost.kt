@@ -23,9 +23,6 @@ import com.example.musicplayer.presentation.viewmodels.MainActivityViewModel
 import com.example.musicplayer.presentation.viewmodels.MusicFoldersViewModel
 import com.example.musicplayer.presentation.viewmodels.PlaylistBottomSheetVm
 import com.example.musicplayer.presentation.viewmodels.TracksViewModel
-import java.net.URLDecoder
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 @Composable
 fun MusicFolderNavHost(onOpenThemes: () -> Unit) {
@@ -64,8 +61,7 @@ private fun MusicFoldersScreenRoute(navController: NavHostController, onOpenThem
         musicFolders = musicFolders,
         onOpenThemes = onOpenThemes,
         onClick = { folder ->
-            val encodedPath = URLEncoder.encode(folder.path, StandardCharsets.UTF_8.toString())
-            navController.navigate("${Screen.TracksScreen.route}/$encodedPath")
+            navController.navigate(Screen.TracksScreen.createRoute(folder.path))
         }
     )
 }
@@ -82,9 +78,9 @@ private fun TracksScreenRoute(path: String, onBack: () -> Unit) {
     val playlists by playlistBottomSheetVm.playListsState.collectAsStateWithLifecycle(initialValue = emptyList())
     val trackState by mainViewModel.trackState.collectAsStateWithLifecycle()
 
+    // Navigation has already decoded the path argument
     val pageTitle = remember(path) {
-        URLDecoder.decode(path, StandardCharsets.UTF_8.toString())
-            .split("/").lastOrNull { it.isNotBlank() } ?: "Music"
+        path.split("/").lastOrNull { it.isNotBlank() } ?: "Music"
     }
 
     TracksScreen(

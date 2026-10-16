@@ -70,8 +70,8 @@ object MusicUtils {
         // Selection criteria: only retrieve music files in the specified folder
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DATA} LIKE ?"
 
-        // Selection arguments: path of the specified folder
-        val selectionArgs = arrayOf("${folderPath}%")
+        // Selection arguments: files under the specified folder (direct children are picked below)
+        val selectionArgs = arrayOf("${folder.path}/%")
 
         // Query the media store
         val cursor = contentResolver.query(
@@ -89,8 +89,12 @@ object MusicUtils {
                 val filePath = c.getString(pathColumn)
                 val file = File(filePath)
 
+                // Subfolders are listed as folders of their own, so only keep direct children.
                 // Check if the file is not already added
-                if (file.exists() && file.isFile && !musicFiles.contains(file)) {
+                if (file.parentFile == folder && file.exists() && file.isFile && !musicFiles.contains(
+                        file
+                    )
+                ) {
                     Log.d(TAG, file.name)
                     musicFiles.add(file)
                 }

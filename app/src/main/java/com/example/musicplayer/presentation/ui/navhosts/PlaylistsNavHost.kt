@@ -1,6 +1,5 @@
 package com.example.musicplayer.presentation.ui.navhosts
 
-import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
@@ -66,8 +65,7 @@ private fun PlaylistsScreenRoute(navController: NavHostController, onOpenThemes:
         onOpenThemes = onOpenThemes,
         onClick = { playlist: Playlist ->
             navController.navigate(
-                Screen.PlaylistTracksScreen.route +
-                        "?playlistId=${playlist.id}&playlistTitle=${Uri.encode(playlist.name)}"
+                Screen.PlaylistTracksScreen.createRoute(playlist.id, playlist.name)
             )
         },
         onRemove = viewModel::removePlaylist

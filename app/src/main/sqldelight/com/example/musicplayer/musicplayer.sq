@@ -33,8 +33,10 @@ SELECT last_insert_rowid();
 insertTrack:
 INSERT OR IGNORE INTO PlaylistTrack (playlist_id, track_name, path, art_path) VALUES (?, ?, ?,?);
 
+-- In the order they were added; without ORDER BY, SQLite walks the (playlist_id, path) key and
+-- returns them sorted by path
 selectTracksByPlaylistId:
-SELECT * FROM PlaylistTrack WHERE playlist_id = ?;
+SELECT * FROM PlaylistTrack WHERE playlist_id = ? ORDER BY rowid;
 
 deleteTrackById:
 DELETE FROM PlaylistTrack WHERE playlist_id = ? AND path = ?;

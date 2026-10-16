@@ -45,10 +45,14 @@ class MusicFoldersRepositoryImpl @Inject constructor(private val contentResolver
         return@withContext processedList
     }
 
+    // albumPath is either a folder or a track inside one (MainActivityViewModel passes track paths)
     override fun getAlbumIconUrl(albumPath: String): String {
+        val path = File(albumPath)
+        val folder = if (path.isFile) path.parentFile else path
+
         // Check for common album cover image files in the folder
         val possibleCoverFiles = listOf("cover.jpg", "folder.jpg", "album.jpg", "thumb.jpg")
-        val albumCoverFile = possibleCoverFiles.map { File(albumPath, it) }
+        val albumCoverFile = possibleCoverFiles.map { File(folder, it) }
             .firstOrNull { it.exists() }
 
         if (albumCoverFile != null) {
@@ -57,8 +61,10 @@ class MusicFoldersRepositoryImpl @Inject constructor(private val contentResolver
 
         // Try to get album art using MediaStore
         val projection = arrayOf(MediaStore.Audio.Media.ALBUM_ID)
-        val selection = "${MediaStore.Audio.Media.DATA} LIKE ?"
-        val selectionArgs = arrayOf("$albumPath%") // Matches files in the folder
+        val selection =
+            "${MediaStore.Audio.Media.DATA} = ? OR ${MediaStore.Audio.Media.DATA} LIKE ?"
+        // The track itself, or files in the folder (not in sibling folders sharing the prefix)
+        val selectionArgs = arrayOf(path.path, "${path.path}/%")
 
         contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,

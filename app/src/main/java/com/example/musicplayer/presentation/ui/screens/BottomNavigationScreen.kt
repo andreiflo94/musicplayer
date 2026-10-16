@@ -1,5 +1,6 @@
 package com.example.musicplayer.presentation.ui.screens
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -20,10 +21,17 @@ import com.example.musicplayer.presentation.ui.theme.Motion
 
 // ---- Screens ----
 sealed class Screen(val route: String) {
-    object TracksScreen : Screen("tracks_screen")
+    object TracksScreen : Screen("tracks_screen") {
+        // Navigation decodes path args with Uri.decode, so encode the same way (URLEncoder's
+        // "+" for spaces wouldn't come back as spaces).
+        fun createRoute(folderPath: String) = "$route/${Uri.encode(folderPath)}"
+    }
     object MusicFoldersScreen : Screen("music_folders_screen")
     object PlaylistsScreen : Screen("playlists_lists")
-    object PlaylistTracksScreen : Screen("playlist_tracks_screen")
+    object PlaylistTracksScreen : Screen("playlist_tracks_screen") {
+        fun createRoute(playlistId: Long, playlistTitle: String) =
+            "$route?playlistId=$playlistId&playlistTitle=${Uri.encode(playlistTitle)}"
+    }
 }
 
 /**
